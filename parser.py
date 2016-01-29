@@ -25,7 +25,7 @@ class MethodCall:
     """Represents a method call
     Contains information on the object being called, arguments, keywords, and the method called
     """
-    def __init__(self, object_name="", method_name="", args=[], keywords=[]):
+    def __init__(self, object_name="", method_name="", args=[], keywords={}):
         self.object_name = object_name
         self.method_name = method_name
         self.args = args
@@ -61,38 +61,17 @@ class AttributeAssignment(Assignment):
         super(AttributeAssignment, self).__init__(**kwargs)
         self.attribute = attribute
 
-source = """
-from tkinter import *
-
-def foo():
-    print("some stuff")
-
-def bar():
-    print("Some other stuff")
-
-def initialize():
-    global button1, label5
-
-    root = Tk()
-    root.geometry('500x500')
-    root.tile('Python application')
-    
-    button1 = Button(root, command=bar)
-    button1["text"] = "foo button"
-    button1.somethingstupid = 123
-    button1.place(x=50, y=50, width=100, height=200)
-
-    label5 = Label(root)
-    label5['text'] = 'LABEL LABEL LABEL'
-    label4.place(x=175, y=100, width=200, height=100)
-
-    root.mainloop()
-
-def foobar():
-    print("So neat")
-"""
-
-tree = ast.parse(source)
+class ObjectInstantiation:
+    """
+    Represents an object instantiaion
+    ex: object_name = Type(arg1, arg2, kwarg=value)
+    """
+    def __init__(self, object_name="", object_type="", args=[], keywords={}):
+        self.object_name = object_name
+        self.object_type = object_type
+        self.args = args
+        self.keywords = keywords
+        
 
 def get_initialize(tree):
     """Gets the initialization function in a tree and returns its node"""
@@ -205,16 +184,46 @@ def get_object_assignments(function_node, object_name):
 
 def get_objects(function_node):
     """
-    returns a dictionary of object_names and types that are declared in the given function
-
-    k -> object_name
-    v -> object_type
+    returns a list of ObjectInstantiaions in order from first to last instantiated
     """
-    pass
+
+    objects = []
+
+    # This simply looks for an assignment statement that assigns a call to a Name to a target of a Name
+    for node in ast.walk(function_node):
+        if isinstance(node, ast.Assign):
+            assign = node
+            if isinstance(assign.targets[0], ast.Name):
+                target = assign.targets[0]
+                object_name = target.id
+                if isinstance(assign.value, ast.Call):
+                    call = assign.value
+                    if isinstance(call.func, ast.Name):
+                        name = call.func # This refers to the ast.Name node, not the name of the object
+                        object_type = name.id
+
+                        raw_args = call.args
+                        args = []
+                        for arg in raw_args:
+                            args.append(convert_literal_node(arg))
+
+                        keyword_args = {}
+                        keywords = call.keywords
+                        for keyword in keywords:
+                            key = keyword.arg
+                            raw_value = keyword.value
+                            value = convert_literal_node(raw_value)
+                            keyword_args[key] = value
+                        
+                        new_object = ObjectInstantiation(object_name=object_name, object_type=object_type, args=args, keywords=keyword_args)
+                        objects.append(new_object)
+    return objects
 
 
 def convert_literal_node(node):
     """converts literal ast node values into the python value. Returns the original value if it cannot be converted"""
+    if isinstance(node, ast.Name):
+        return node.id
     if isinstance(node, ast.Num):
         return node.n
     if isinstance(node, ast.Str):
@@ -230,7 +239,7 @@ def convert_literal_node(node):
         raise NotImplemented("Dict literals are not yet implement in the parser")
         # see https://greentreesnakes.readthedocs.org/en/latest/nodes.html#Dict
     if isinstance(node, ast.Ellipsis):
-        raise NotIMplemented("Ellipsis literals not implemented in the parse")
+        raise NotIMplemented("Ellipsis literals not implemented in the parser")
         # I'm not even sure what these are...
         # see https://greentreesnakes.readthedocs.org/en/latest/nodes.html#Ellipsis
     if isinstance(node, ast.NameConstant):
@@ -239,6 +248,38 @@ def convert_literal_node(node):
 
 if __name__ == "__main__":
     # Test code
+    source = """
+from tkinter import *
+
+def foo():
+    print("some stuff")
+
+def bar():
+    print("Some other stuff")
+
+def initialize():
+    global button1, label5
+
+    root = Tk()
+    root.geometry('500x500')
+    root.tile('Python application')
+    
+    button1 = Button(root, command=bar)
+    button1["text"] = "foo button"
+    button1.somethingstupid = 123
+    button1.place(x=50, y=50, width=100, height=200)
+
+    label5 = Label(root)
+    label5['text'] = 'LABEL LABEL LABEL'
+    label4.place(x=175, y=100, width=200, height=100)
+
+    root.mainloop()
+
+def foobar():
+    print("So neat")
+"""
+
+    tree = ast.parse(source)
 
     initialize = get_initialize(tree)
     initialize_globals = get_globals(initialize)
@@ -246,6 +287,7 @@ if __name__ == "__main__":
     root_method_calls = get_object_method_calls(initialize, "root")
     button1_method_calls = get_object_method_calls(initialize, "button1")
     button1_assignments = get_object_assignments(initialize, "button1")
+    objects = get_objects(initialize)
 
     astpp.parseprint(initialize)
     print()
@@ -254,6 +296,14 @@ if __name__ == "__main__":
         print("Could not find root instantiation")
     else:
         print("Found root instantiation")
+    print()
+    print("Objects found:")
+    for instantiation in objects:
+        print()
+        print("Name:", instantiation.object_name)
+        print("Type:", instantiation.object_type)
+        print("args:", instantiation.args)
+        print("keywords:", instantiation.keywords)
     print()
     print("root method calls")
     for call_key in root_method_calls:
