@@ -113,8 +113,8 @@ class TkWidgetImpl(Widget):
         self.widget = widget
         self.window = tk.Canvas()  # the window is a canvas that contains everything related to the widget
         # create the selection outline
-        # We use a blue frame and make it 2 pixels wider than the window canvas
-        self.__outline_id = self.window.create_window(-1, -1, window=tk.Frame(bg=colors.lightblue_primary),
+        # We use a blue frame and make it 4 pixels wider than the window canvas
+        self.__outline_id = self.window.create_window(-2, -2, window=tk.Frame(bg=colors.lightblue_primary),
                                                       anchor=tk.NW,
                                                       width=0,
                                                       height=0,
@@ -134,8 +134,8 @@ class TkWidgetImpl(Widget):
 
     def __configure(self, event):
         """This is called when the main window is changed, for example, resized. So we also resize everything inside the canvas"""
-        self.window.itemconfig(self.__outline_id, width=event.width+2)
-        self.window.itemconfig(self.__outline_id, height=event.height+2)
+        self.window.itemconfig(self.__outline_id, width=event.width+4)
+        self.window.itemconfig(self.__outline_id, height=event.height+4)
         self.window.itemconfig(self.__widget_id, width=event.width)
         self.window.itemconfig(self.__widget_id, height=event.height)
 
