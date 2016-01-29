@@ -181,20 +181,24 @@ def get_object_assignments(function_node, object_name):
     assignments = []
     for node in ast.walk(function_node):
         if isinstance(node, ast.Assign):
-            print("assignment")
             assign = node
             if isinstance(assign.targets[0], ast.Subscript):
-                print("subscript")
                 subscript = assign.targets[0]
-                if (subscript.value, ast.Name):
-                    print("name")
+                if isinstance(subscript.value, ast.Name):
                     name = subscript.value.id # This is the ast.Name related to the object_name
-                    print(name)
                     if name == object_name:
-                        print("name matches")
                         subscript_value = convert_literal_node(subscript.slice.value)
                         value = convert_literal_node(assign.value)
                         new_assignment = SubscriptAssignment(object_name=object_name, subscript=subscript_value, value=value)
+                        assignments.append(new_assignment)
+            elif isinstance(assign.targets[0], ast.Attribute):
+                attribute = assign.targets[0]
+                if isinstance(attribute.value, ast.Name):
+                    name = attribute.value.id # This is the ast.Name related to the object_name
+                    if name == object_name:
+                        attribute_name = attribute.attr
+                        attribute_value = convert_literal_node(assign.value)
+                        new_assignment = AttributeAssignment(object_name=object_name, attribute=attribute_name, value=attribute_value)
                         assignments.append(new_assignment)
     return assignments
 
@@ -232,44 +236,53 @@ def convert_literal_node(node):
     if isinstance(node, ast.NameConstant):
         return node.value
     return node
-    
-initialize = get_initialize(tree)
-initialize_globals = get_globals(initialize)
-root_instantiation = get_root_instantiation(initialize)
-root_method_calls = get_object_method_calls(initialize, "root")
-button1_method_calls = get_object_method_calls(initialize, "button1")
-button1_assignments = get_object_assignments(initialize, "button1")
 
-astpp.parseprint(initialize)
-print()
-print(initialize_globals)
-if root_instantiation == None:
-    print("Could not find root instantiation")
-else:
-    print("Found root instantiation")
-print()
-print("root method calls")
-for call_key in root_method_calls:
-    call = root_method_calls[call_key]
-    print()
-    print("method_name:", call.method_name)
-    print("args:", call.args)
-    print("keywords:", call.keywords)
-print()
-print("button1 method calls")
-for call_key in button1_method_calls:
-    call = button1_method_calls[call_key]
-    print()
-    print("method_name:", call.method_name)
-    print("args:", call.args)
-    print("keywords:", call.keywords)
-print()
-print("button1 assignments")
-for call in button1_assignments:
-    print()
-    print("subscript:", call.subscript)
-    print("value:", call.value)
+if __name__ == "__main__":
+    # Test code
 
-#print(get_initialize(tree).name)
+    initialize = get_initialize(tree)
+    initialize_globals = get_globals(initialize)
+    root_instantiation = get_root_instantiation(initialize)
+    root_method_calls = get_object_method_calls(initialize, "root")
+    button1_method_calls = get_object_method_calls(initialize, "button1")
+    button1_assignments = get_object_assignments(initialize, "button1")
 
-#astpp.parseprint(source)
+    astpp.parseprint(initialize)
+    print()
+    print(initialize_globals)
+    if root_instantiation == None:
+        print("Could not find root instantiation")
+    else:
+        print("Found root instantiation")
+    print()
+    print("root method calls")
+    for call_key in root_method_calls:
+        call = root_method_calls[call_key]
+        print()
+        print("method_name:", call.method_name)
+        print("args:", call.args)
+        print("keywords:", call.keywords)
+    print()
+    print("button1 method calls")
+    for call_key in button1_method_calls:
+        call = button1_method_calls[call_key]
+        print()
+        print("method_name:", call.method_name)
+        print("args:", call.args)
+        print("keywords:", call.keywords)
+    print()
+    print("button1 assignments")
+    for call in button1_assignments:
+        if isinstance(call, SubscriptAssignment):
+            print()
+            print("subscript:", call.subscript)
+            print("value:", call.value)
+        else:
+            print()
+            print("attribute:", call.attribute)
+            print("value:", call.value)
+
+    #print(get_initialize(tree).name)
+
+    #astpp.parseprint(source)
+
