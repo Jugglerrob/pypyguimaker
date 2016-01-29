@@ -1,5 +1,5 @@
 """
-    parser.py
+    guiParser.py
     Written by Robert Bofinger
 
     This file makes use of the ast module. The ast module allows for the creation of abstract syntax trees
@@ -245,6 +245,14 @@ def convert_literal_node(node):
     if isinstance(node, ast.NameConstant):
         return node.value
     return node
+
+
+def get_tree(source):
+    """
+    returns the tree of nodes from the source file
+    """
+    return ast.parse(source)
+
 
 if __name__ == "__main__":
     # Test code
