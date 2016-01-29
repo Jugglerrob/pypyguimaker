@@ -2,6 +2,7 @@ __author__ = 'robert'
 
 import tkinter as tk
 import tkinter.ttk as ttk
+import colors
 
 class GUIObj:
     """Represents the most basic gui object"""
@@ -111,7 +112,7 @@ class TkWidgetImpl(Widget):
         self.window = tk.Canvas()  # the window is a canvas that contains everything related to the widget
         # create the selection outline
         # We use a blue frame and make it 2 pixels wider than the window canvas
-        self.__outline_id = self.window.create_window(-1, -1, window=tk.Frame(bg="blue"),
+        self.__outline_id = self.window.create_window(-1, -1, window=tk.Frame(bg=colors.lightblue_primary),
                                                       anchor=tk.NW,
                                                       width=0,
                                                       height=0,
