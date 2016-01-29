@@ -4,9 +4,18 @@ import tkinter as tk
 import tkinter.ttk as ttk
 import colors
 
+
+class Vector:
+    """Represents a position in 2d space"""
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+
 class GUIObj:
     """Represents the most basic gui object"""
     def __init__(self, name="", class_variable=False, **kwargs):
+        # What is class_variable? Wether or not it is a global maybe?
         self.name = name
         self.class_variable = class_variable
 
@@ -32,7 +41,7 @@ class Container(GUIObj):
 
 class Window(Container):
     """Represents a window on the screen. Is a Container for other widgets"""
-    def __init__(self, title="", size=(600, 800), **kwargs):
+    def __init__(self, title="", size=Vector(600, 800), **kwargs):
         super().__init__(**kwargs)
         self.title = title
         self.size = size
@@ -52,13 +61,6 @@ class Widget(GUIObj):
         # is not built in event code. So this is a quick and basic way to do it. Store actions for an event as a list
         # in a dict, where the event is the key
         self._events[event] = self._events.get(event, []).append(action)
-
-
-class Vector:
-    """Represents a position in 2d space"""
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
 
 
 class MovableWidget(Widget):
@@ -230,7 +232,7 @@ class TkSizableWidgetImpl(SizableWidget, TkWidgetImpl):
         handle_fill.pack(fill=tk.BOTH, expand=True, pady=1, padx=1)
         # put the handle into a canvas window at the bottom right
         handle_size = 10
-        self.__handle_id = self.window.create_window(self.size.x + 1, self.size.x + 1, width=handle_size, height=handle_size, anchor=tk.SE,
+        self.__handle_id = self.window.create_window(self.size.x + 1, self.size.y + 1, width=handle_size, height=handle_size, anchor=tk.SE,
                                                      window=handle)
         # bind the handle drags
         handle.bind("<B1-Motion>", self.__drag, add="+")
@@ -306,10 +308,11 @@ class Frame(Container, MovableWidget, SizableWidget):
 
 
 class Button(MovableWidget, SizableWidget, TextContainer):
-    def __init__(self, **kwargs):
+    def __init__(self, command=None, **kwargs):
         """
         @type canvas: tk.Canvas
         """
+        self.command = command
         super().__init__(**kwargs)
 
 
@@ -332,7 +335,7 @@ if __name__ == "__main__":
 
     example_window = Window(title='foo', name='root_window')
 
-    example_button = TtkButtonImpl(canvas=mainCanvas, position=Vector(0, 0), size=Vector(50, 50), parent=example_window)
+    example_button = TtkButtonImpl(canvas=mainCanvas, position=Vector(40, 40), size=Vector(100, 200), parent=example_window)
     print(example_button.parent)
     #def selectExample(event): example.selected = True
     #def resize(event): example.size = Vector(example.size.x + 2, example.size.y + 2)

@@ -1,5 +1,5 @@
 """
-    guiParser.py
+    parser.py
     Written by Robert Bofinger
 
     This file makes use of the ast module. The ast module allows for the creation of abstract syntax trees
@@ -16,6 +16,12 @@
     Then you have the important information on the creation of the object and can hopefuly reconstruct it
     
 """
+
+# This file makes extensive use of ast.walk() which might give unexpected results for unexpected inputs.
+# For example, you might want to stop walking when you reach a certain point, or not step into certain functions.
+# The functions in this file will not be able to do that. I wrote it this way because I didn't know any better at
+# the time. One function that looks promissing is <someAstType>.getChildNodes() and iterating through those as you
+# need it.
 
 import ast
 import astpp
@@ -109,7 +115,9 @@ def get_root_instantiation(function_node):
                     return node
 
                 
-def get_object_method_calls(function_node, object_name):
+def get_method_calls(function_node, object_name):
+    # It would be helpful to get method calls that aren't on an object. for example: foo()
+    # It might already happen to do this but a test is needed
     """returns a dictionary of calls and MethodCalls objects. The dictionary structure is useful for quickly finding the methods you are interested in
     If multiple method calls with the same method name are found, only the last one will be included in the Dict
     
@@ -150,7 +158,7 @@ def get_object_method_calls(function_node, object_name):
     return calls
 
 
-def get_object_assignments(function_node, object_name):
+def get_assignments(function_node, object_name):
     """returns a list of Assignment objects for the given object_name in the given function_node"""
 
     # This only supports simple assignments such as "name.attr = value" or "name[index] = value". Other
@@ -292,9 +300,9 @@ def foobar():
     initialize = get_initialize(tree)
     initialize_globals = get_globals(initialize)
     root_instantiation = get_root_instantiation(initialize)
-    root_method_calls = get_object_method_calls(initialize, "root")
-    button1_method_calls = get_object_method_calls(initialize, "button1")
-    button1_assignments = get_object_assignments(initialize, "button1")
+    root_method_calls = get_method_calls(initialize, "root")
+    button1_method_calls = get_method_calls(initialize, "button1")
+    button1_assignments = get_assignments(initialize, "button1")
     objects = get_objects(initialize)
 
     astpp.parseprint(initialize)
