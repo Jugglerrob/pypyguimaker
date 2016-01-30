@@ -12,6 +12,7 @@ def initialize():
     root.configure(background=colors.background)
     main_canvas = tk.Canvas(root, bg=colors.white_primary)
     main_canvas.pack(padx=5, pady=5)
+    main_canvas.bind("<Button-1>", unselect_all)
 
     load("play.py")
     
@@ -29,6 +30,32 @@ def get_guiobj(name):
             return obj
     return None
 
+
+def on_selection(guievent):
+    """
+    callback for when a widget is selected
+
+    unselects all other widgets and sets the properties panel to be focused on the current widget
+    """
+    caller = guievent.caller
+    unselect_others(caller)
+
+
+def unselect_others(exluded):
+    """
+    unselects all guiobjs except for the excluded obj
+    """
+    for obj in gui_objects:
+        if obj is not exluded:
+            obj.selected = False
+
+
+def unselect_all(event=None):
+    """
+    sets the selected state of all guibojs to False
+    """
+    for obj in gui_objects:
+        obj.selected = False
 
 def clear():
     """
@@ -56,6 +83,7 @@ def load_initialize(source):
     initialize_objects = guiparser.get_objects(tree)
     initialize_function = guiparser.get_initialize(tree)
     for obj in initialize_objects:
+        
         # make sense of the returned objects and create them in the canvas
         assignments = guiparser.get_assignments(initialize_function, obj.object_name)
         method_calls = guiparser.get_method_calls(initialize_function, obj.object_name)
@@ -112,7 +140,10 @@ def load_initialize(source):
             if parent == None:
                 print ("Error when loading objects. cannot find parent of %s named %s" %(obj.name, parent_name))
 
-            new_button = GUIObj.TtkButtonImpl(canvas=main_canvas, position=position, size=size, parent=parent, command=command, text=text)
+            print(obj.object_name)
+            new_button = GUIObj.TtkButtonImpl(name=obj.object_name, canvas=main_canvas, position=position, size=size, parent=parent, command=command, text=text)
+            new_button.bind_event("selected", on_selection)
+            print(new_button.name)
             gui_objects.append(new_button)
             
         else:

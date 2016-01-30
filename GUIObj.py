@@ -5,6 +5,11 @@ import tkinter.ttk as ttk
 import colors
 
 
+class Event:
+    def __init__(self, caller):
+        self.caller = caller
+
+
 class Vector:
     """Represents a position in 2d space"""
     def __init__(self, x, y):
@@ -60,8 +65,10 @@ class Widget(GUIObj):
         # This is my way of doing callbacks/bindings/events. I looked up on google for python event and it seems there
         # is not built in event code. So this is a quick and basic way to do it. Store actions for an event as a list
         # in a dict, where the event is the key
-        self._events[event] = self._events.get(event, []).append(action)
+        print("binding")
+        self._events[event] = self._events.get(event, []) + [action]
 
+        
 
 class MovableWidget(Widget):
     """A Widget that has a position"""
@@ -153,10 +160,10 @@ class TkWidgetImpl(Widget):
         # callback
         if value and "selected" in self._events:
             for event in self._events["selected"]:
-                event(None)
+                event(Event(self))
         if not value and "unselected" in self._events:
             for event in self._events["unselected"]:
-                event(None)
+                event(Event(self))
 
 
 class TkMovableWidgetImpl(MovableWidget, TkWidgetImpl):
@@ -210,7 +217,9 @@ class TkMovableWidgetImpl(MovableWidget, TkWidgetImpl):
         if "moved" in self._events:
             delta = Vector(delta_x, delta_y)
             for event in self._events["moved"]:
-                event(delta)
+                new_event = Event(self)
+                new_event.delta = delta
+                event(new_event)
 
         
 class TkSizableWidgetImpl(SizableWidget, TkWidgetImpl):
@@ -284,7 +293,8 @@ class TkSizableWidgetImpl(SizableWidget, TkWidgetImpl):
             # callback
             if "resized" in self._events:
                 for event in self._events["resized"]:
-                    event()
+                    new_event = Event(self)
+                    event(new_event)
         else:
             self._size = value
 
