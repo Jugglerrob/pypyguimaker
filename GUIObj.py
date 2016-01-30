@@ -65,7 +65,6 @@ class Widget(GUIObj):
         # This is my way of doing callbacks/bindings/events. I looked up on google for python event and it seems there
         # is not built in event code. So this is a quick and basic way to do it. Store actions for an event as a list
         # in a dict, where the event is the key
-        print("binding")
         self._events[event] = self._events.get(event, []) + [action]
 
         
@@ -243,15 +242,25 @@ class TkSizableWidgetImpl(SizableWidget, TkWidgetImpl):
         handle_size = 10
         self.__handle_id = self.window.create_window(self.size.x+2, self.size.y+2, width=handle_size, height=handle_size, anchor=tk.SE,
                                                      window=handle)
+        self.window.itemconfig(self.__handle_id, state=tk.HIDDEN)
         # bind the handle drags
         handle.bind("<B1-Motion>", self.__drag, add="+")
         handle_fill.bind("<B1-Motion>", self.__drag, add="+")
         handle.bind("<Button-1>", self.__click, add="+")
         handle_fill.bind("<Button-1>", self.__click, add="+")
+        # bind handle hiding
+        self.bind_event("selected", self.__show_handle)
+        self.bind_event("unselected", self.__hide_handle)
         # Have the widget update it's size
         self.size = self.size
         self.__click_offset = Vector(0, 0)
 
+    def __show_handle(self, event=None):
+        self.window.itemconfig(self.__handle_id, state=tk.NORMAL)
+
+    def __hide_handle(self, event=None):
+        self.window.itemconfig(self.__handle_id, state=tk.HIDDEN)
+        
     def __drag(self, event):
         """
         The handle was dragged and this widget needs to be resized by the delta

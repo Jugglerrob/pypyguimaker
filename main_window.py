@@ -140,10 +140,8 @@ def load_initialize(source):
             if parent == None:
                 print ("Error when loading objects. cannot find parent of %s named %s" %(obj.name, parent_name))
 
-            print(obj.object_name)
             new_button = GUIObj.TtkButtonImpl(name=obj.object_name, canvas=main_canvas, position=position, size=size, parent=parent, command=command, text=text)
             new_button.bind_event("selected", on_selection)
-            print(new_button.name)
             gui_objects.append(new_button)
             
         else:
