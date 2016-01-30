@@ -116,10 +116,10 @@ def get_root_instantiation(function_node):
 
                 
 def get_method_calls(function_node, object_name):
-    # It would be helpful to get method calls that aren't on an object. for example: foo()
-    # It might already happen to do this but a test is needed
     """returns a dictionary of calls and MethodCalls objects. The dictionary structure is useful for quickly finding the methods you are interested in
     If multiple method calls with the same method name are found, only the last one will be included in the Dict
+
+    This function returns METHOD calls not FUNCTION calls.
     
     k -> methodname
     v -> MethodCall
@@ -142,14 +142,14 @@ def get_method_calls(function_node, object_name):
                               raw_args = call.args
                               args = []
                               for arg in raw_args:
-                                  args.append(convert_literal_node(arg))
+                                  args.append(convert_arg(arg))
 
                               keyword_args = {}
                               keywords = call.keywords
                               for keyword in keywords:
                                   key = keyword.arg
                                   raw_value = keyword.value
-                                  value = convert_literal_node(raw_value)
+                                  value = convert_arg(raw_value)
                                   keyword_args[key] = value
 
                               call = MethodCall(object_name=object_name, method_name=attr, args=args, keywords=keyword_args)
@@ -213,14 +213,14 @@ def get_objects(function_node):
                         raw_args = call.args
                         args = []
                         for arg in raw_args:
-                            args.append(convert_literal_node(arg))
+                            args.append(convert_arg(arg))
 
                         keyword_args = {}
                         keywords = call.keywords
                         for keyword in keywords:
                             key = keyword.arg
                             raw_value = keyword.value
-                            value = convert_literal_node(raw_value)
+                            value = convert_arg(raw_value)
                             keyword_args[key] = value
                         
                         new_object = ObjectInstantiation(object_name=object_name, object_type=object_type, args=args, keywords=keyword_args)
@@ -230,8 +230,6 @@ def get_objects(function_node):
 
 def convert_literal_node(node):
     """converts literal ast node values into the python value. Returns the original value if it cannot be converted"""
-    if isinstance(node, ast.Name):
-        return node.id
     if isinstance(node, ast.Num):
         return node.n
     if isinstance(node, ast.Str):
@@ -253,6 +251,13 @@ def convert_literal_node(node):
     if isinstance(node, ast.NameConstant):
         return node.value
     return node
+
+def convert_arg(node):
+    """converts an argument node to a usable value"""
+    if isinstance(node, ast.Name):
+        return node.id
+    else:
+        return convert_literal_node(node)
 
 
 def get_tree(source):
@@ -347,7 +352,6 @@ def foobar():
             print()
             print("attribute:", call.attribute)
             print("value:", call.value)
-
     #print(get_initialize(tree).name)
 
     #astpp.parseprint(source)
