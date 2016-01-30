@@ -236,12 +236,12 @@ class TkSizableWidgetImpl(SizableWidget, TkWidgetImpl):
         super().__init__(**kwargs)
         self._size = self.size
         # create a handle as a frame
-        handle = tk.Frame(self.canvas.winfo_toplevel(), bg="black")
+        handle = tk.Frame(self.canvas.winfo_toplevel(), bg=colors.lightblue_primary)
         handle_fill = tk.Frame(handle, bg="white")
-        handle_fill.pack(fill=tk.BOTH, expand=True, pady=1, padx=1)
+        handle_fill.pack(fill=tk.BOTH, expand=True, pady=2, padx=2)
         # put the handle into a canvas window at the bottom right
         handle_size = 10
-        self.__handle_id = self.window.create_window(self.size.x + 1, self.size.y + 1, width=handle_size, height=handle_size, anchor=tk.SE,
+        self.__handle_id = self.window.create_window(self.size.x+2, self.size.y+2, width=handle_size, height=handle_size, anchor=tk.SE,
                                                      window=handle)
         # bind the handle drags
         handle.bind("<B1-Motion>", self.__drag, add="+")
