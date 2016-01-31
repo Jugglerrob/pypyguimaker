@@ -2,22 +2,95 @@ import GUIObj
 import guiparser
 import tkinter as tk
 import tkinter.ttk as ttk
+import tkinter.font as fonts
 import colors
 
 gui_objects = []
 
+
 def initialize():
-    global root, main_canvas
+    global root, main_canvas, property_entries
+
     root = tk.Tk()
     root.configure(background=colors.background)
-    main_canvas = tk.Canvas(root, bg=colors.white_primary)
-    main_canvas.pack(padx=5, pady=5)
+
+    bold = fonts.Font(weight="bold", size=10)
+
+    style = ttk.Style()
+    style.configure('TFrame', background=colors.white_primary)
+    style.configure('LightBluePrimaryNavLabel.TLabel', foreground=colors.background, background=colors.lightblue_primary)
+    style.configure('LightBluePrimaryFrame.TFrame', background=colors.lightblue_primary)
+
+    main_frame = ttk.Frame(root, style='LightBluePrimaryFrame.TFrame')
+    main_frame.pack(padx=10, pady=10, side=tk.LEFT, fill=tk.BOTH, expand=True)
+    main_title = ttk.Label(main_frame, style='LightBluePrimaryNavLabel.TLabel', text='Window Designer')
+    main_title.pack(padx=5, fill=tk.X)
+    main_canvas = tk.Canvas(main_frame, bg=colors.white_primary)
+    main_canvas.pack(fill=tk.BOTH, expand=True)
     main_canvas.bind("<Button-1>", unselect_all)
 
+    right_frame = ttk.Frame(root)
+    right_frame.pack(side=tk.LEFT, padx=10, pady=10, fill=tk.Y)
+    properties_title_frame = ttk.Frame(right_frame, style='LightBluePrimaryFrame.TFrame')
+    properties_title_frame.pack(fill=tk.X)
+    properties_title_label = ttk.Label(properties_title_frame, text='Properties', style='LightBluePrimaryNavLabel.TLabel')
+    properties_title_label.pack(fill=tk.X, padx=5)
+    #properties_header_hr = ttk.Frame(right_frame, height=2, style='BluePrimaryFrame.TFrame')
+    #properties_header_hr.pack(fill=tk.X)
+    #properties_label = ttk.Label(right_frame, text='PROPERTIES', style='BluePrimaryLabel.TLabel')
+    #properties_label.pack(fill=tk.X, padx=20, pady=0)
+    property_frame = ttk.Frame(right_frame)
+    property_frame.pack(pady=4, fill=tk.Y)
+
+    properties=["Name", "Y Position", "X Position", "Width", "Height"]
+    property_entries = {}
+
+    for prop in properties:
+        property_entries[prop] = create_property_option(property_frame, prop)
+    
     load("play.py")
     
     root.mainloop()
 
+
+def create_property_option(panel, name):
+    """
+    helper function for creating the properties panel. creates a label and entry inside a frame.
+    returns the created Entry widget
+    """
+    frame = ttk.Frame(panel)
+    frame.pack(fill=tk.X, pady=2)
+    label = ttk.Label(frame)
+    label["text"] = name
+    label.pack(side=tk.LEFT, padx=5)
+    border = tk.Frame(frame, background=colors.white_primary) # it's easier to use a frame as a border than to style ttk entries
+    border.pack(side=tk.RIGHT, padx=5)
+    text = tk.Entry(border, width=20, borderwidth=2, insertwidth=1, relief="flat")
+    text.pack(side=tk.RIGHT, padx=2, pady=2)
+
+    text.bind("<FocusIn>", lambda event: set_background(border, colors.lightblue_primary))
+    text.bind("<FocusOut>", lambda event: set_background(border, colors.white_primary))
+    text.bind("<FocusOut>", lambda event: save_properties, add="+")
+    text.bind("<Return>", lambda event: save_properties)
+    
+    return text
+
+
+def save_properties():
+    """
+    saves all the properties set in the options panel to the selected widget
+    """
+    pass
+
+
+def set_background(widget, color):
+    """
+    sets the background of a tk widget
+    will not work on a ttk widget
+    """
+    # used primarly to highlight the border frame around an entry widget in the properties panel when presed
+    widget["background"] = color
+    
 
 def get_guiobj(name):
     """
