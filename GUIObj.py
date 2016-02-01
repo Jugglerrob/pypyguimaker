@@ -65,7 +65,10 @@ class Widget(GUIObj):
         # This is my way of doing callbacks/bindings/events. I looked up on google for python event and it seems there
         # is not built in event code. So this is a quick and basic way to do it. Store actions for an event as a list
         # in a dict, where the event is the key
-        self._events[event] = self._events.get(event, []) + [action]
+        actions = self._events.get(event, [])
+        if action not in actions:
+            actions += [action]
+        self._events[event] = actions
 
         
 
@@ -219,7 +222,7 @@ class TkMovableWidgetImpl(MovableWidget, TkWidgetImpl):
                 new_event = Event(self)
                 new_event.delta = delta
                 event(new_event)
-
+    
         
 class TkSizableWidgetImpl(SizableWidget, TkWidgetImpl):
     """
@@ -336,15 +339,29 @@ class Button(MovableWidget, SizableWidget, TextContainer):
 
 
 class TtkButtonImpl(TkSizableWidgetImpl, TkMovableWidgetImpl, Button, TextContainer):
-    def __init__(self, canvas=None, **kwargs):
+    def __init__(self, canvas=None, text=None, **kwargs):
         """
         @type canvas: tk.Canvas
         """
+        #self.__text = ""
         
         new_button = ttk.Label(canvas.winfo_toplevel(), style="TButton")
-        new_button["text"] = "default"
 
         super().__init__(widget=new_button, canvas=canvas, **kwargs)
+
+        self.text = text
+
+    @property
+    def text(self):
+        if hasattr(self, '_text'):
+            return self._text
+        else:
+            return ""
+
+    @text.setter
+    def text(self, value):
+        self._text = value
+        self.widget["text"] = self._text
 
 
 if __name__ == "__main__":

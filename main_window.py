@@ -5,7 +5,11 @@ import tkinter.ttk as ttk
 import tkinter.font as fonts
 import colors
 
-gui_objects = []
+gui_objects = [] # all gui objs in the designer
+selected_object = None # The currently selected gui obj
+property_entries = {} # A dict of available property entries
+root = None # The tk root window
+main_canvas = None # The main canvas to put new gui objs on
 
 
 def initialize():
@@ -42,7 +46,7 @@ def initialize():
     property_frame = ttk.Frame(right_frame)
     property_frame.pack(pady=4, fill=tk.Y)
 
-    properties=["Name", "Y Position", "X Position", "Width", "Height"]
+    properties=["Name", "Y Position", "X Position", "Width", "Height", "Text", "Command"]
     property_entries = {}
 
     for prop in properties:
@@ -70,17 +74,130 @@ def create_property_option(panel, name):
 
     text.bind("<FocusIn>", lambda event: set_background(border, colors.lightblue_primary))
     text.bind("<FocusOut>", lambda event: set_background(border, colors.white_primary))
-    text.bind("<FocusOut>", lambda event: save_properties, add="+")
-    text.bind("<Return>", lambda event: save_properties)
+    text.bind("<FocusOut>", lambda event: save_properties(selected_object), add="+")
+    text.bind("<Return>", lambda event: save_properties(selected_object))
     
     return text
 
 
-def save_properties():
+def load_selectedobj_properties():
+    load_properties(selected_object)
+
+
+def save_selectedobj_properties():
+    save_properties(selected_object)
+
+
+def load_properties(guiobj):
+    if isinstance(guiobj, GUIObj.Button):
+        load_button_properties(guiobj)
+    if isinstance(guiobj, GUIObj.MovableWidget):
+        load_movable_properties(guiobj)
+    if isinstance(guiobj, GUIObj.SizableWidget):
+        load_sizable_properties(guiobj)
+    if isinstance(guiobj, GUIObj.TextContainer):
+        load_textcontainer_properties(guiobj)
+    if isinstance(guiobj, GUIObj.Widget):
+        load_widget_properties(guiobj)
+    if isinstance(guiobj, GUIObj.GUIObj):
+        load_guiobj_properties(guiobj)
+
+
+def save_properties(guiobj):
     """
     saves all the properties set in the options panel to the selected widget
     """
+    if isinstance(guiobj, GUIObj.Button):
+        save_button_properties(guiobj)
+    if isinstance(guiobj, GUIObj.MovableWidget):
+        save_movable_properties(guiobj)
+    if isinstance(guiobj, GUIObj.SizableWidget):
+        save_sizable_properties(guiobj)
+    if isinstance(guiobj, GUIObj.TextContainer):
+        save_textcontainer_properties(guiobj)
+    if isinstance(guiobj, GUIObj.Widget):
+        save_widget_properties(guiobj)
+    if isinstance(guiobj, GUIObj.GUIObj):
+        save_guiobj_properties(guiobj)
+
+
+def save_button_properties(guiobj):
+    guiobj.command = property_entries["Command"].get()
+
+
+def load_button_properties(guiobj):
+    property_entries["Command"].delete(0, tk.END)
+    property_entries["Command"].insert(0, guiobj.command)
+
+
+def save_movable_properties(guiobj):
+    x = guiobj.position.x
+    y = guiobj.position.y
+    try:
+        x = int(property_entries["X Position"].get())
+    except:
+        pass
+    try:
+        y = int(property_entries["Y Position"].get())
+    except:
+        pass
+    guiobj.position = GUIObj.Vector(x, y)
+
+
+def load_movable_properties(guiobj):
+    property_entries["X Position"].delete(0, tk.END)
+    property_entries["Y Position"].delete(0, tk.END)
+    property_entries["X Position"].insert(0, guiobj.position.x)
+    property_entries["Y Position"].insert(0, guiobj.position.y)
+
+
+def save_sizable_properties(guiobj):
+    x = guiobj.size.x
+    y = guiobj.size.y
+    try:
+        x = int(property_entries["Width"].get())
+    except:
+        pass
+    try:
+        y = int(property_entries["Height"].get())
+    except:
+        pass
+    guiobj.size = GUIObj.Vector(x, y)
+
+
+def load_sizable_properties(guiobj):
+    property_entries["Width"].delete(0, tk.END)
+    property_entries["Height"].delete(0, tk.END)
+    property_entries["Width"].insert(0, guiobj.size.x)
+    property_entries["Height"].insert(0, guiobj.size.y)
+
+
+def save_textcontainer_properties(guiobj):
+    guiobj.text = property_entries["Text"].get()
+    # TODO: save font
+
+
+def load_textcontainer_properties(guiobj):
+    property_entries["Text"].delete(0, tk.END)
+    property_entries["Text"].insert(0, guiobj.text)
+
+
+def save_widget_properties(guiobj):
+    # TODO: add support for setting parent
     pass
+
+
+def load_widget_properties(guiobj):
+    pass
+
+
+def save_guiobj_properties(guiobj):
+    guiobj.name = property_entries["Name"].get()
+
+
+def load_guiobj_properties(guiobj):
+    property_entries["Name"].delete(0, tk.END)
+    property_entries["Name"].insert(0, guiobj.name)
 
 
 def set_background(widget, color):
@@ -105,13 +222,21 @@ def get_guiobj(name):
 
 
 def on_selection(guievent):
+    global selected_object
     """
     callback for when a widget is selected
 
     unselects all other widgets and sets the properties panel to be focused on the current widget
     """
+    save_properties(selected_object)
     caller = guievent.caller
     unselect_others(caller)
+    selected_object = caller
+    load_properties(selected_object)
+    if isinstance(caller, GUIObj.MovableWidget):
+        caller.bind_event("moved", lambda event: load_movable_properties(caller))
+    if isinstance(caller, GUIObj.SizableWidget):
+        caller.bind_event("resized", lambda event: load_sizable_properties(caller))
 
 
 def unselect_others(exluded):
@@ -129,6 +254,7 @@ def unselect_all(event=None):
     """
     for obj in gui_objects:
         obj.selected = False
+
 
 def clear():
     """
@@ -160,7 +286,8 @@ def load_initialize(source):
         # make sense of the returned objects and create them in the canvas
         assignments = guiparser.get_assignments(initialize_function, obj.object_name)
         method_calls = guiparser.get_method_calls(initialize_function, obj.object_name)
-        
+
+        # Tk root loading
         if obj.object_type == "Tk":
             # the Tk type should only be instantiated once and is represented by a window obj
             title = ""
@@ -177,7 +304,9 @@ def load_initialize(source):
                 size = GUIObj.Vector(x, y)
             new_window = GUIObj.Window(title=title, size=size, name=obj.object_name)
             gui_objects.append(new_window)
-        
+        # End Tk root loading
+
+        # Button loading
         elif obj.object_type == "Button":
             parent_name = obj.args[0]
             parent = get_guiobj(parent_name)
@@ -216,10 +345,11 @@ def load_initialize(source):
             new_button = GUIObj.TtkButtonImpl(name=obj.object_name, canvas=main_canvas, position=position, size=size, parent=parent, command=command, text=text)
             new_button.bind_event("selected", on_selection)
             gui_objects.append(new_button)
-            
+        # End Button loading        
+
         else:
             print("Error when loading objects. Objects of type %s are not yet supported" % (obj.object_type))
-        
+    
     
 initialize()
 
