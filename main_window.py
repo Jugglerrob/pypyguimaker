@@ -52,7 +52,7 @@ def initialize():
     for prop in properties:
         property_entries[prop] = create_property_option(property_frame, prop)
     
-    load("play.py")
+    load("test_gui.py")
     
     root.mainloop()
 
