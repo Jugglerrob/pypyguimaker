@@ -95,6 +95,7 @@ def load_properties(guiobj):
     load_textcontainer_properties(guiobj)
     load_widget_properties(guiobj)
     load_guiobj_properties(guiobj)
+    root.focus() # reset text focus. Removes any highlighting
 
 
 def save_properties(guiobj):
@@ -261,17 +262,31 @@ def unselect_others(exluded):
     """
     unselects all guiobjs except for the excluded obj
     """
+    global selected_object
+    
     for obj in gui_objects:
         if obj is not exluded:
             obj.selected = False
+            if obj is selected_object:
+                save_properties(obj)
+                selected_object = None
+                load_properties(None)
 
 
 def unselect_all(event=None):
     """
     sets the selected state of all guibojs to False
     """
+    global selected_object
+    
     for obj in gui_objects:
         obj.selected = False
+    if selected_object is not None:
+        save_properties(selected_object)
+        selected_object = None
+        load_properties(None)
+    
+    
 
 
 def clear():
