@@ -121,9 +121,9 @@ def save_button_properties(guiobj):
 
 
 def load_button_properties(guiobj):
+    property_entries["Command"].delete(0, tk.END)
     if isinstance(guiobj, GUIObj.Button):
         property_entries["Command"].configure(state=tk.NORMAL)
-        property_entries["Command"].delete(0, tk.END)
         property_entries["Command"].insert(0, guiobj.command)
     else:
         property_entries["Command"].configure(state=tk.DISABLED)
@@ -144,11 +144,11 @@ def save_movable_properties(guiobj):
 
 
 def load_movable_properties(guiobj):
+    property_entries["X Position"].delete(0, tk.END)
+    property_entries["Y Position"].delete(0, tk.END)
     if isinstance(guiobj, GUIObj.MovableWidget):
         property_entries["X Position"].configure(state=tk.NORMAL)
         property_entries["Y Position"].configure(state=tk.NORMAL)
-        property_entries["X Position"].delete(0, tk.END)
-        property_entries["Y Position"].delete(0, tk.END)
         property_entries["X Position"].insert(0, guiobj.position.x)
         property_entries["Y Position"].insert(0, guiobj.position.y)
     else:
@@ -171,11 +171,11 @@ def save_sizable_properties(guiobj):
 
 
 def load_sizable_properties(guiobj):
+    property_entries["Width"].delete(0, tk.END)
+    property_entries["Height"].delete(0, tk.END)
     if isinstance(guiobj, GUIObj.SizableWidget):
         property_entries["Width"].configure(state=tk.NORMAL)
         property_entries["Height"].configure(state=tk.NORMAL)
-        property_entries["Width"].delete(0, tk.END)
-        property_entries["Height"].delete(0, tk.END)
         property_entries["Width"].insert(0, guiobj.size.x)
         property_entries["Height"].insert(0, guiobj.size.y)
     else:
@@ -189,9 +189,9 @@ def save_textcontainer_properties(guiobj):
 
 
 def load_textcontainer_properties(guiobj):
+    property_entries["Text"].delete(0, tk.END)
     if isinstance(guiobj, GUIObj.TextContainer):
         property_entries["Text"].configure(state=tk.NORMAL)
-        property_entries["Text"].delete(0, tk.END)
         property_entries["Text"].insert(0, guiobj.text)
     else:
         property_entries["Text"].configure(state=tk.DISABLED)
@@ -211,9 +211,9 @@ def save_guiobj_properties(guiobj):
 
 
 def load_guiobj_properties(guiobj):
+    property_entries["Name"].delete(0, tk.END)
     if isinstance(guiobj, GUIObj.GUIObj):
         property_entries["Name"].configure(state=tk.NORMAL)
-        property_entries["Name"].delete(0, tk.END)
         property_entries["Name"].insert(0, guiobj.name)
     else:
         property_entries["Name"].configure(state=tk.DISABLED)
@@ -285,8 +285,6 @@ def unselect_all(event=None):
         save_properties(selected_object)
         selected_object = None
         load_properties(None)
-    
-    
 
 
 def clear():
