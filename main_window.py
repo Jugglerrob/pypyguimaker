@@ -22,10 +22,14 @@ def initialize():
 
     style = ttk.Style()
     style.configure('TFrame', background=colors.white_primary)
+    style.configure('BackgroundFrame.TFrame', background=colors.background)
     style.configure('LightBluePrimaryNavLabel.TLabel', foreground=colors.background, background=colors.lightblue_primary)
     style.configure('LightBluePrimaryFrame.TFrame', background=colors.lightblue_primary)
 
-    main_frame = ttk.Frame(root, style='LightBluePrimaryFrame.TFrame')
+    root_frame = ttk.Frame(root, style='BackgroundFrame.TFrame') # The root frame is just a giant frame used to add extra padding between the window border and elements
+    root_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+
+    main_frame = ttk.Frame(root_frame, style='LightBluePrimaryFrame.TFrame')
     main_frame.pack(padx=10, pady=10, side=tk.LEFT, fill=tk.BOTH, expand=True)
     main_title = ttk.Label(main_frame, style='LightBluePrimaryNavLabel.TLabel', text='Window Designer')
     main_title.pack(padx=5, fill=tk.X)
@@ -33,7 +37,7 @@ def initialize():
     main_canvas.pack(fill=tk.BOTH, expand=True)
     main_canvas.bind("<Button-1>", unselect_all)
 
-    right_frame = ttk.Frame(root)
+    right_frame = ttk.Frame(root_frame)
     right_frame.pack(side=tk.LEFT, padx=10, pady=10, fill=tk.Y)
     properties_title_frame = ttk.Frame(right_frame, style='LightBluePrimaryFrame.TFrame')
     properties_title_frame.pack(fill=tk.X)
