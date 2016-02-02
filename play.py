@@ -18,7 +18,7 @@ def initialize():
 
     randLabel = Label(root)
     randLabel['text'] = "I'M A LABEL :D"
-    randLabel.place(x=10, y=10)
+    randLabel.place(x=10, y=10, width=85, height=20)
 
     root.mainloop()
 
