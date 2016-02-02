@@ -10,6 +10,7 @@
 background = "#FFF"
 white_primary = "#ECF0F1"
 white_secondary = "#BDC3C7"
+white_disabled = "#DDE4E6"
 darkblue_primary = "#34495E"
 darkblue_secondary = "#3C3E50"
 lightblue_primary = "#3498DB"
