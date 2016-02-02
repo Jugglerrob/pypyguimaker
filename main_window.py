@@ -3,6 +3,7 @@ import guiparser
 import tkinter as tk
 import tkinter.ttk as ttk
 import tkinter.font as fonts
+import tkinter.filedialog
 import colors
 
 gui_objects = [] # all gui objs in the designer
@@ -52,9 +53,15 @@ def initialize():
 
     properties=["Name", "Y Position", "X Position", "Width", "Height", "Text", "Command"]
     property_entries = {}
-
     for prop in properties:
         property_entries[prop] = create_property_option(property_frame, prop)
+
+    filemenu = tk.Menu(root, tearoff=0)
+    filemenu.add_command(label="Load...", command=load_prompt)
+
+    menubar = tk.Menu(root)
+    menubar.add_cascade(label="File", menu=filemenu)
+    root.config(menu=menubar)
     
     load("test_gui.py")
     
@@ -292,10 +299,26 @@ def unselect_all(event=None):
 
 
 def clear():
+    global gui_objects
     """
     resets the window to its initial state
     """
-    pass
+    unselect_all()
+    gui_objects = []
+    main_canvas.delete("all")
+
+
+def load_prompt():
+    """
+    prompt the user for a file to load
+    """
+    try:
+        filename = tkinter.filedialog.askopenfilename(filetypes=[('Py file','*.py'), ('All files','*.*')])
+        if filename != '':
+            load(filename)
+    except Exception as e:
+        print("error when opening and loading file")
+        print(e)
 
 
 def load(filename):
