@@ -69,7 +69,7 @@ def create_property_option(panel, name):
     label.pack(side=tk.LEFT, padx=5)
     border = tk.Frame(frame, background=colors.white_primary) # it's easier to use a frame as a border than to style ttk entries
     border.pack(side=tk.RIGHT, padx=5)
-    text = tk.Entry(border, width=20, borderwidth=2, insertwidth=1, relief="flat", disabledbackground=colors.white_disabled)
+    text = tk.Entry(border, width=20, borderwidth=2, insertwidth=1, relief="flat", disabledbackground=colors.white_disabled, state=tk.DISABLED)
     text.pack(side=tk.RIGHT, padx=2, pady=2)
 
     text.bind("<FocusIn>", lambda event: set_background(border, colors.lightblue_primary))
