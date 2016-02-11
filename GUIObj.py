@@ -343,6 +343,11 @@ class Label(MovableWidget, SizableWidget, TextContainer):
         super().__init__(**kwargs)
 
 
+class Entry(MovableWidget, SizableWidget, TextContainer):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+
 class TtkButtonImpl(TkSizableWidgetImpl, TkMovableWidgetImpl, Button, TextContainer):
     def __init__(self, canvas=None, text="", **kwargs):
         """
@@ -386,6 +391,27 @@ class TtkLabelImpl(TkSizableWidgetImpl, TkMovableWidgetImpl, Label, TextContaine
     def text(self, value):
         self._text = value
         self.widget["text"] = self._text
+
+
+class TtkEntryImpl(TkSizableWidgetImpl, TkMovableWidgetImpl, Entry, TextContainer):
+    def __init__(self, canvas=None, text="", **kwargs):
+        new_entry = ttk.Entry(canvas.winfo_toplevel(), style="TEntry", state=tk.DISABLED)
+        super().__init__(widget=new_entry, canvas=canvas, **kwargs)
+        self.text = text
+
+    @property
+    def text(self):
+        if hasattr(self, '_text'):
+            return self._text
+        else:
+            return ""
+
+    @text.setter
+    def text(self, value):
+        self._text = value
+        self.widget["state"] = tk.NORMAL
+        self.widget.delete(0, tk.END)
+        self.widget.insert(0, value)
 
 
 if __name__ == "__main__":

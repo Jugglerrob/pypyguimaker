@@ -113,6 +113,8 @@ def save_properties(guiobj):
     """
     saves all the properties set in the options panel to the selected widget
     """
+    if isinstance(guiobj, GUIObj.Entry):
+        save_entry_properties(guiobj)
     if isinstance(guiobj, GUIObj.Button):
         save_button_properties(guiobj)
     if isinstance(guiobj, GUIObj.MovableWidget):
@@ -125,6 +127,14 @@ def save_properties(guiobj):
         save_widget_properties(guiobj)
     if isinstance(guiobj, GUIObj.GUIObj):
         save_guiobj_properties(guiobj)
+
+
+def save_entry_properties(guiobj):
+    pass
+
+
+def load_entry_properties(guiobj):
+    pass
 
 
 def save_button_properties(guiobj):
@@ -350,6 +360,8 @@ def load_initialize(source):
             load_button(obj, assignments, method_calls)
         elif obj.object_type == "Label":
             load_label(obj, assignments, method_calls)
+        elif obj.object_type == "Entry":
+            load_entry(obj, assignments, method_calls)
         else:
             print("Error when loading objects. Objects of type %s are not yet supported" % (obj.object_type))
 
@@ -450,6 +462,45 @@ def load_label(obj, assignments, method_calls):
     new_label.bind_event("selected", on_selection)
     gui_objects.append(new_label)
 
+
+def load_entry(obj, assignment, method_calls):
+    """
+    loads entry code into a guiobj
+    """
+    parent_name = obj.args[0]
+    parent = get_guiobj(parent_name)
+    text = ""
+    position = GUIObj.Vector(0, 0)
+    size = GUIObj.Vector(0, 0)
+
+    if "text" in obj.keywords:
+        text = obj.keywords["text"]
+
+    #for assignment in assignments:
+    #    if isinstance(assignment, guiparser.SubscriptAssignment):
+    #        if assignment.subscript == "text":
+    #            text = assignment.value
+
+    for method in method_calls.values():
+        if method.method_name == "place":
+            if "x" in method.keywords:
+                position.x = int(method.keywords["x"])
+            if "y" in method.keywords:
+                position.y = int(method.keywords["y"])
+            if "width" in method.keywords:
+                size.x = int(method.keywords["width"])
+            if "height" in method.keywords:
+                size.y = int(method.keywords["height"])
+        if method.method_name == "insert":
+            if method.args[0] == 0: # assure that we're inserting at the very start
+                text = method.args[1]
+            else:
+                println("Cannot insert text at any place other than 0")
+
+    new_entry = GUIObj.TtkEntryImpl(name=obj.object_name, canvas=main_canvas, position=position, size=size, parent=parent, text=text)
+    new_entry.bind_event("selected", on_selection)
+    gui_objects.append(new_entry)
+    
     
 initialize()
 

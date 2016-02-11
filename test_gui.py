@@ -20,6 +20,10 @@ def initialize():
     randLabel['text'] = "I'M A LABEL :D"
     randLabel.place(x=10, y=10, width=85, height=20)
 
+    myEntry = Entry(root)
+    myEntry.insert(0, "This is an entry")
+    myEntry.place(x=75, y=75, width=100, height=25)
+
     root.mainloop()
 
 def bar(event=None):
