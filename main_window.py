@@ -59,10 +59,12 @@ def initialize():
                 ("Height", "entry"),
                 ("Text", "entry"),
                 ("Command", "entry"),
-                ("Justify", "combo", ("left", "center", "right")),
+                ("Justify", "entry"),
+                #("Justify", "option", ("left", "center", "right")),
                 ("Show", "entry"),
                 ("Associated Variable", "entry"),
-                ("Validate", "combo", ("focus", "focusin", "focusout", "key", "all", "none")),
+                #("Validate", "option", ("focus", "focusin", "focusout", "key", "all", "none")),
+                ("Validate", "entry"),
                 ("Validate Command", "entry")
                 )
     property_entries = {}
@@ -108,11 +110,14 @@ def create_property_option(panel, options):
     
         return text
 
-    elif input_type == "combo":
+    elif input_type == "option":
+        # will not produce valid widget.
+        # .get() will not work
+        # cannot be disabled
         value = tk.StringVar()
-        combo = ttk.Combobox(frame, textvariable=value)
-        combo["values"] = options[2]
-        combo.pack(side=tk.RIGHT, padx=2, pady=2)
+        value.set("left")
+        combo = ttk.OptionMenu(frame, value, options[2][0], *options[2])
+        combo.pack(side=tk.RIGHT, padx=5)
         return combo
 
 
@@ -125,6 +130,7 @@ def save_selectedobj_properties():
 
 
 def load_properties(guiobj):
+    load_entry_properties(guiobj)
     load_button_properties(guiobj)
     load_movable_properties(guiobj)
     load_sizable_properties(guiobj)
@@ -156,14 +162,36 @@ def save_properties(guiobj):
 
 def save_entry_properties(guiobj):
     guiobj.justify = property_entries["Justify"].get()
-    guiobj.justify = property_entries["Show"].get()
+    guiobj.show = property_entries["Show"].get()
     guiobj.associated_variable = property_entries["Associated Variable"].get()
     guiobj.validate = property_entries["Validate"].get()
     guiobj.validate_command = property_entries["Validate Command"].get()
 
 
 def load_entry_properties(guiobj):
-    pass
+    property_entries["Justify"].delete(0, tk.END)
+    property_entries["Show"].delete(0, tk.END)
+    property_entries["Associated Variable"].delete(0, tk.END)
+    property_entries["Validate"].delete(0, tk.END)
+    property_entries["Validate Command"].delete(0, tk.END)
+    if isinstance(guiobj, GUIObj.Entry):
+        property_entries["Justify"].configure(state=tk.NORMAL)
+        property_entries["Show"].configure(state=tk.NORMAL)
+        property_entries["Associated Variable"].configure(state=tk.NORMAL)
+        property_entries["Validate"].configure(state=tk.NORMAL)
+        property_entries["Validate Command"].configure(state=tk.NORMAL)
+        property_entries["Justify"].insert(0, guiobj.justify)
+        property_entries["Show"].insert(0, guiobj.show)
+        property_entries["Associated Variable"].insert(0, guiobj.associated_variable)
+        property_entries["Validate"].insert(0, guiobj.validate)
+        property_entries["Validate Command"].insert(0, guiobj.validate_command)
+        
+    else:
+        property_entries["Justify"].configure(state=tk.DISABLED)
+        property_entries["Show"].configure(state=tk.DISABLED)
+        property_entries["Associated Variable"].configure(state=tk.DISABLED)
+        property_entries["Validate"].configure(state=tk.DISABLED)
+        property_entries["Validate Command"].configure(state=tk.DISABLED)
 
 
 def save_button_properties(guiobj):

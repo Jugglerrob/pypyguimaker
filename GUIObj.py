@@ -344,7 +344,7 @@ class Label(MovableWidget, SizableWidget, TextContainer):
 
 
 class Entry(MovableWidget, SizableWidget, TextContainer):
-    def __init__(self, justify="left", show=None, validate=None, validate_command=None, associated_variable=None, **kwargs):
+    def __init__(self, justify="left", show="", validate="", validate_command="", associated_variable="", **kwargs):
         super().__init__(**kwargs)
         self.justify = justify
         self.show = show # indicates what character to replace with for password fields
@@ -399,7 +399,7 @@ class TtkLabelImpl(TkSizableWidgetImpl, TkMovableWidgetImpl, Label):
 
 
 class TtkEntryImpl(TkSizableWidgetImpl, TkMovableWidgetImpl, Entry):
-    def __init__(self, canvas=None, text="", justify="left", show="", validate=None, validate_command=None, associated_variable=None,  **kwargs):
+    def __init__(self, canvas=None, text="", justify="left", show="", validate="", validate_command="", associated_variable="",  **kwargs):
         self._text = text
         self._justify = justify
         self._show = show
@@ -447,17 +447,16 @@ class TtkEntryImpl(TkSizableWidgetImpl, TkMovableWidgetImpl, Entry):
 
     @justify.setter
     def justify(self, value):
-        #print(value)
         self.widget["state"] = tk.ACTIVE
         if value == "right":
             self._justify = "right"
-            self.widget["justify"] = tk.RIGHT
+            self.widget["justify"] = "right"
         elif value == "center":
             self._justify = "center"
-            self.widget["justify"] = tk.CENTER
+            self.widget["justify"] = "center"
         else:
             self._justify = "left"
-            self.widget["justify"] = tk.LEFT
+            self.widget["justify"] = "left"
         self.widget["state"] = tk.DISABLED
 
     @property
@@ -465,9 +464,9 @@ class TtkEntryImpl(TkSizableWidgetImpl, TkMovableWidgetImpl, Entry):
         return self._show
 
     @show.setter
-    def show(self, value):
+    def show(self, value):   
         self._show = value
-        self.widget["show"] = value  
+        self.widget["show"] = value
         
 
 if __name__ == "__main__":
