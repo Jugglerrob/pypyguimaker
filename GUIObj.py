@@ -4,7 +4,6 @@ import tkinter as tk
 import tkinter.ttk as ttk
 import colors
 
-
 class Event:
     def __init__(self, caller):
         self.caller = caller
@@ -234,7 +233,7 @@ class TkSizableWidgetImpl(SizableWidget, TkWidgetImpl):
 
     Inheriting from this class will place a square handle on the corner of the widget that can be dragged to resize.
     """
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs):        
         super().__init__(**kwargs)
         self._size = self.size
         # create a handle as a frame
@@ -395,7 +394,25 @@ class TtkLabelImpl(TkSizableWidgetImpl, TkMovableWidgetImpl, Label, TextContaine
 
 class TtkEntryImpl(TkSizableWidgetImpl, TkMovableWidgetImpl, Entry, TextContainer):
     def __init__(self, canvas=None, text="", **kwargs):
-        new_entry = ttk.Entry(canvas.winfo_toplevel(), style="TEntry", state=tk.DISABLED)
+        # To have a disabled entry looked like an enabled entry we must make an entire new style
+        # style code grabbed from: http://stackoverflow.com/a/17639955
+        style = ttk.Style()
+        style.element_create("plain.field", "from", "clam")
+        style.layout("EntryStyle.TEntry",
+                           [('Entry.plain.field', {'children': [(
+                               'Entry.background', {'children': [(
+                                   'Entry.padding', {'children': [(
+                                       'Entry.textarea', {'sticky': 'nswe'})],
+                              'sticky': 'nswe'})], 'sticky': 'nswe'})],
+                              'border':'2', 'sticky': 'nswe'})])
+        style.configure("EntryStyle.TEntry",
+                         background=colors.white_primary, # this is actually the background behind the whole widget
+                         fieldbackground="white") # this is the background behind the text
+        # end copied style code
+        style.map("EntryStyle.TEntry",
+                  foreground = [("disabled", "black") ] # requried to make the text appear black instead of disabled
+                  )
+        new_entry = ttk.Entry(canvas.winfo_toplevel(), style="EntryStyle.TEntry", state=tk.DISABLED)
         super().__init__(widget=new_entry, canvas=canvas, **kwargs)
         self.text = text
 
@@ -412,6 +429,7 @@ class TtkEntryImpl(TkSizableWidgetImpl, TkMovableWidgetImpl, Entry, TextContaine
         self.widget["state"] = tk.NORMAL
         self.widget.delete(0, tk.END)
         self.widget.insert(0, value)
+        self.widget["state"] = tk.DISABLED
 
 
 if __name__ == "__main__":

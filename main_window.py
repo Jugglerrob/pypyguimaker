@@ -18,6 +18,7 @@ def initialize():
 
     root = tk.Tk()
     root.configure(background=colors.background)
+    
 
     bold = fonts.Font(weight="bold", size=10)
 
