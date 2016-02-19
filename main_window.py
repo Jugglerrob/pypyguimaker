@@ -52,10 +52,22 @@ def initialize():
     property_frame = ttk.Frame(right_frame)
     property_frame.pack(pady=4, fill=tk.Y)
 
-    properties=["Name", "Y Position", "X Position", "Width", "Height", "Text", "Command"]
+    properties=(("Name", "entry"),
+                ("Y Position", "entry"),
+                ("X Position", "entry"),
+                ("Width", "entry"),
+                ("Height", "entry"),
+                ("Text", "entry"),
+                ("Command", "entry"),
+                ("Justify", "combo", ("left", "center", "right")),
+                ("Show", "entry"),
+                ("Associated Variable", "entry"),
+                ("Validate", "combo", ("focus", "focusin", "focusout", "key", "all", "none")),
+                ("Validate Command", "entry")
+                )
     property_entries = {}
     for prop in properties:
-        property_entries[prop] = create_property_option(property_frame, prop)
+        property_entries[prop[0]] = create_property_option(property_frame, prop)
 
     filemenu = tk.Menu(root, tearoff=0)
     filemenu.add_command(label="Load...", command=load_prompt)
@@ -69,27 +81,39 @@ def initialize():
     root.mainloop()
 
 
-def create_property_option(panel, name):
+def create_property_option(panel, options):
     """
     helper function for creating the properties panel. creates a label and entry inside a frame.
     returns the created Entry widget
     """
+    name = options[0]
+    input_type = options[1]
+    
     frame = ttk.Frame(panel)
     frame.pack(fill=tk.X, pady=2)
     label = ttk.Label(frame)
     label["text"] = name
     label.pack(side=tk.LEFT, padx=5)
-    border = tk.Frame(frame, background=colors.white_primary) # it's easier to use a frame as a border than to style ttk entries
-    border.pack(side=tk.RIGHT, padx=5)
-    text = tk.Entry(border, width=20, borderwidth=2, insertwidth=1, relief="flat", disabledbackground=colors.white_disabled, state=tk.DISABLED)
-    text.pack(side=tk.RIGHT, padx=2, pady=2)
 
-    text.bind("<FocusIn>", lambda event: set_background(border, colors.lightblue_primary))
-    text.bind("<FocusOut>", lambda event: set_background(border, colors.white_primary))
-    text.bind("<FocusOut>", lambda event: save_properties(selected_object), add="+")
-    text.bind("<Return>", lambda event: save_properties(selected_object))
+    if input_type == "entry":
+        border = tk.Frame(frame, background=colors.white_primary) # it's easier to use a frame as a border than to style ttk entries
+        border.pack(side=tk.RIGHT, padx=5)
+        text = tk.Entry(border, width=20, borderwidth=2, insertwidth=1, relief="flat", disabledbackground=colors.white_disabled, state=tk.DISABLED)
+        text.pack(side=tk.RIGHT, padx=2, pady=2)
+
+        text.bind("<FocusIn>", lambda event: set_background(border, colors.lightblue_primary))
+        text.bind("<FocusOut>", lambda event: set_background(border, colors.white_primary))
+        text.bind("<FocusOut>", lambda event: save_properties(selected_object), add="+")
+        text.bind("<Return>", lambda event: save_properties(selected_object))
     
-    return text
+        return text
+
+    elif input_type == "combo":
+        value = tk.StringVar()
+        combo = ttk.Combobox(frame, textvariable=value)
+        combo["values"] = options[2]
+        combo.pack(side=tk.RIGHT, padx=2, pady=2)
+        return combo
 
 
 def load_selectedobj_properties():
@@ -131,7 +155,11 @@ def save_properties(guiobj):
 
 
 def save_entry_properties(guiobj):
-    pass
+    guiobj.justify = property_entries["Justify"].get()
+    guiobj.justify = property_entries["Show"].get()
+    guiobj.associated_variable = property_entries["Associated Variable"].get()
+    guiobj.validate = property_entries["Validate"].get()
+    guiobj.validate_command = property_entries["Validate Command"].get()
 
 
 def load_entry_properties(guiobj):

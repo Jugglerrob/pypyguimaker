@@ -318,6 +318,7 @@ class Font:
 class TextContainer:
     """Represents a widget that contains text"""
     def __init__(self, text="", font=Font(), **kwargs):
+        super().__init__(**kwargs)
         self.text = text
         self.font = font
 
@@ -343,9 +344,14 @@ class Label(MovableWidget, SizableWidget, TextContainer):
 
 
 class Entry(MovableWidget, SizableWidget, TextContainer):
-    def __init__(self, **kwargs):
+    def __init__(self, justify="left", show=None, validate=None, validate_command=None, associated_variable=None, **kwargs):
         super().__init__(**kwargs)
-
+        self.justify = justify
+        self.show = show # indicates what character to replace with for password fields
+        self.associated_variable = associated_variable
+        self.validate = validate # when to validate http://infohost.nmt.edu/tcc/help/pubs/tkinter/web/entry-validation.html
+        self.validate_command = validate_command # a callback to dynamically validate contents
+        
 
 class TtkButtonImpl(TkSizableWidgetImpl, TkMovableWidgetImpl, Button, TextContainer):
     def __init__(self, canvas=None, text="", **kwargs):
@@ -373,7 +379,7 @@ class TtkButtonImpl(TkSizableWidgetImpl, TkMovableWidgetImpl, Button, TextContai
         self.widget["text"] = self._text
 
 
-class TtkLabelImpl(TkSizableWidgetImpl, TkMovableWidgetImpl, Label, TextContainer):
+class TtkLabelImpl(TkSizableWidgetImpl, TkMovableWidgetImpl, Label):
     def __init__(self, canvas=None, text="", **kwargs):
         new_label = ttk.Label(canvas.winfo_toplevel(), style="TLabel")
         super().__init__(widget=new_label, canvas=canvas, **kwargs)
@@ -392,8 +398,12 @@ class TtkLabelImpl(TkSizableWidgetImpl, TkMovableWidgetImpl, Label, TextContaine
         self.widget["text"] = self._text
 
 
-class TtkEntryImpl(TkSizableWidgetImpl, TkMovableWidgetImpl, Entry, TextContainer):
-    def __init__(self, canvas=None, text="", **kwargs):
+class TtkEntryImpl(TkSizableWidgetImpl, TkMovableWidgetImpl, Entry):
+    def __init__(self, canvas=None, text="", justify="left", show="", validate=None, validate_command=None, associated_variable=None,  **kwargs):
+        self._text = text
+        self._justify = justify
+        self._show = show
+        
         # To have a disabled entry looked like an enabled entry we must make an entire new style
         # style code grabbed from: http://stackoverflow.com/a/17639955
         style = ttk.Style()
@@ -413,15 +423,15 @@ class TtkEntryImpl(TkSizableWidgetImpl, TkMovableWidgetImpl, Entry, TextContaine
                   foreground = [("disabled", "black") ] # requried to make the text appear black instead of disabled
                   )
         new_entry = ttk.Entry(canvas.winfo_toplevel(), style="EntryStyle.TEntry", state=tk.DISABLED)
-        super().__init__(widget=new_entry, canvas=canvas, **kwargs)
+        super().__init__(widget=new_entry, canvas=canvas, text=text, justify=justify, validate=validate, validate_command=validate_command, associated_variable=associated_variable, **kwargs)
         self.text = text
+        self.justify = justify
+        self.show = show
+        
 
     @property
     def text(self):
-        if hasattr(self, '_text'):
-            return self._text
-        else:
-            return ""
+        return self._text
 
     @text.setter
     def text(self, value):
@@ -431,6 +441,34 @@ class TtkEntryImpl(TkSizableWidgetImpl, TkMovableWidgetImpl, Entry, TextContaine
         self.widget.insert(0, value)
         self.widget["state"] = tk.DISABLED
 
+    @property
+    def justify(self):
+        return self._justify
+
+    @justify.setter
+    def justify(self, value):
+        #print(value)
+        self.widget["state"] = tk.ACTIVE
+        if value == "right":
+            self._justify = "right"
+            self.widget["justify"] = tk.RIGHT
+        elif value == "center":
+            self._justify = "center"
+            self.widget["justify"] = tk.CENTER
+        else:
+            self._justify = "left"
+            self.widget["justify"] = tk.LEFT
+        self.widget["state"] = tk.DISABLED
+
+    @property
+    def show(self):
+        return self._show
+
+    @show.setter
+    def show(self, value):
+        self._show = value
+        self.widget["show"] = value  
+        
 
 if __name__ == "__main__":
     root = tk.Tk()
