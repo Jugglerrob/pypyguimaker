@@ -1,3 +1,1 @@
-from MainWindow_OLD import *
-
-main = MainWindow()
+from main_window import *
