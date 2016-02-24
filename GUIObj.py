@@ -28,6 +28,17 @@ class GUIObj:
         # What is class_variable? Wether or not it is a global maybe?
         self.name = name
         self.class_variable = class_variable
+        self._events = {}
+
+    def bind_event(self, event, action):
+        """Binds the action to the event."""
+        # This is my way of doing callbacks/bindings/events. I looked up on google for python event and it seems there
+        # is not built in event code. So this is a quick and basic way to do it. Store actions for an event as a list
+        # in a dict, where the event is the key
+        actions = self._events.get(event, [])
+        if action not in actions:
+            actions += [action]
+        self._events[event] = actions
 
 
 class Container(GUIObj):
@@ -62,19 +73,7 @@ class Widget(GUIObj, Sized):
     def __init__(self, parent=None, **kwargs):
         super().__init__(**kwargs)
         self.parent = parent
-        self._events = {}
         self.parent.add_child(self)
-
-    def bind_event(self, event, action):
-        """Binds the action to the event."""
-        # This is my way of doing callbacks/bindings/events. I looked up on google for python event and it seems there
-        # is not built in event code. So this is a quick and basic way to do it. Store actions for an event as a list
-        # in a dict, where the event is the key
-        actions = self._events.get(event, [])
-        if action not in actions:
-            actions += [action]
-        self._events[event] = actions
-
         
 
 class MovableWidget(Widget):
@@ -198,6 +197,7 @@ class TkMovableWidgetImpl(MovableWidget, TkWidgetImpl):
         self.widget.bind("<B1-Motion>", self.__drag, add="+")
         self.widget.bind("<Button-1>", self.__click, add="+")
         self.bind_event("resized", self.__recalc_maxpos)
+        self.parent.bind_event("resized", self.__recalc_maxpos)
 
     def __drag(self, event):
         """
@@ -219,6 +219,7 @@ class TkMovableWidgetImpl(MovableWidget, TkWidgetImpl):
 
     def __recalc_maxpos(self, event=None, position=None):
         """
+        Recalculates and fixes the maximum x and y positions.
         Called when the user resizes the widget or parent widget, or durring __init__
         """
         maxwidth = 0
