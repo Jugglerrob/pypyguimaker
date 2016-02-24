@@ -8,13 +8,13 @@ import colors
 
 gui_objects = [] # all gui objs in the designer
 selected_object = None # The currently selected gui obj
-property_entries = {} # A dict of available property entries
+property_entries = {} # A dict of available property entries {k:name v:(containing panel, entry/associated var)}
 root = None # The tk root window
 main_canvas = None # The main canvas to put new gui objs on
 
 
 def initialize():
-    global root, main_canvas, property_entries
+    global root, main_canvas, property_entries, property_frame
 
     root = tk.Tk()
     root.configure(background=colors.background)
@@ -49,8 +49,9 @@ def initialize():
     #properties_header_hr.pack(fill=tk.X)
     #properties_label = ttk.Label(right_frame, text='PROPERTIES', style='BluePrimaryLabel.TLabel')
     #properties_label.pack(fill=tk.X, padx=20, pady=0)
-    property_frame = ttk.Frame(right_frame)
+    property_frame = ttk.Frame(right_frame, width=300, height=800)
     property_frame.pack(pady=4, fill=tk.Y)
+    property_frame.pack_propagate(0) # prevents the frame from resizing
 
     properties=(("Name", "entry"),
                 ("Y Position", "entry"),
@@ -59,12 +60,12 @@ def initialize():
                 ("Height", "entry"),
                 ("Text", "entry"),
                 ("Command", "entry"),
-                ("Justify", "entry"),
-                #("Justify", "option", ("left", "center", "right")),
+                #("Justify", "entry"),
+                ("Justify", "option", ("left", "center", "right")),
                 ("Show", "entry"),
                 ("Associated Variable", "entry"),
-                #("Validate", "option", ("focus", "focusin", "focusout", "key", "all", "none")),
-                ("Validate", "entry"),
+                ("Validate", "option", ("focus", "focusin", "focusout", "key", "all", "none")),
+                #("Validate", "entry"),
                 ("Validate Command", "entry")
                 )
     property_entries = {}
@@ -92,7 +93,7 @@ def create_property_option(panel, options):
     input_type = options[1]
     
     frame = ttk.Frame(panel)
-    frame.pack(fill=tk.X, pady=2)
+    #frame.pack(fill=tk.X, pady=2)
     label = ttk.Label(frame)
     label["text"] = name
     label.pack(side=tk.LEFT, padx=5)
@@ -100,15 +101,15 @@ def create_property_option(panel, options):
     if input_type == "entry":
         border = tk.Frame(frame, background=colors.white_primary) # it's easier to use a frame as a border than to style ttk entries
         border.pack(side=tk.RIGHT, padx=5)
-        text = tk.Entry(border, width=20, borderwidth=2, insertwidth=1, relief="flat", disabledbackground=colors.white_disabled, state=tk.DISABLED)
+        text = tk.Entry(border, width=20, borderwidth=2, insertwidth=1, relief="flat", disabledbackground=colors.white_disabled)
         text.pack(side=tk.RIGHT, padx=2, pady=2)
 
         text.bind("<FocusIn>", lambda event: set_background(border, colors.lightblue_primary))
         text.bind("<FocusOut>", lambda event: set_background(border, colors.white_primary))
-        text.bind("<FocusOut>", lambda event: save_properties(selected_object), add="+")
-        text.bind("<Return>", lambda event: save_properties(selected_object))
+        text.bind("<FocusOut>", lambda event: save_selectedobj_properties(), add="+")
+        text.bind("<Return>", lambda event: save_selectedobj_properties())
     
-        return text
+        return (frame, text)
 
     elif input_type == "option":
         # will not produce valid widget.
@@ -116,9 +117,54 @@ def create_property_option(panel, options):
         # cannot be disabled
         value = tk.StringVar()
         value.set("left")
-        combo = ttk.OptionMenu(frame, value, options[2][0], *options[2])
-        combo.pack(side=tk.RIGHT, padx=5)
-        return combo
+        option = ttk.OptionMenu(frame, value, options[2][0], *options[2])
+        option.pack(side=tk.RIGHT, padx=5)
+
+        option.bind("<FocusOut>", lambda event: save_selectedobj_properties(), add="+")
+        value.trace("w", lambda *args: save_selectedobj_properties())
+        
+        return (frame, value)
+
+
+def get_property_value(name):
+    """
+    returns the set value of the property entry given the name
+    """
+    return property_entries[name][1].get()
+
+
+def set_property_value(name, value):
+    """
+    sets the value of the property entry given the name.
+    """
+    if isinstance(property_entries[name][1], tk.Entry): # This is a common entry
+        property_entries[name][1].delete(0, tk.END)
+        property_entries[name][1].insert(0, value);
+    else: # otherwise we are setting the property of an associated variable
+        print(value)
+        property_entries[name][1].set(value)
+
+
+def show_property(name):
+    """
+    shows the given property entry and label
+    """
+    property_entries[name][0].pack(fill=tk.X, pady=2)
+
+
+def hide_property(name):
+    """
+    hides the given property entry and label
+    """
+    property_entries[name][0].pack_forget()
+
+
+def load_property(name, value):
+    """
+    shows and sets the property value
+    """
+    show_property(name)
+    set_property_value(name, value)
 
 
 def load_selectedobj_properties():
@@ -130,13 +176,15 @@ def save_selectedobj_properties():
 
 
 def load_properties(guiobj):
-    load_entry_properties(guiobj)
-    load_button_properties(guiobj)
+    # The order of these calls determine the ordering of the property entries
+    load_guiobj_properties(guiobj)
+    load_widget_properties(guiobj)
     load_movable_properties(guiobj)
     load_sizable_properties(guiobj)
     load_textcontainer_properties(guiobj)
-    load_widget_properties(guiobj)
-    load_guiobj_properties(guiobj)
+    load_entry_properties(guiobj)
+    load_button_properties(guiobj)
+
     root.focus() # reset text focus. Removes any highlighting
 
 
@@ -161,118 +209,95 @@ def save_properties(guiobj):
 
 
 def save_entry_properties(guiobj):
-    guiobj.justify = property_entries["Justify"].get()
-    guiobj.show = property_entries["Show"].get()
-    guiobj.associated_variable = property_entries["Associated Variable"].get()
-    guiobj.validate = property_entries["Validate"].get()
-    guiobj.validate_command = property_entries["Validate Command"].get()
+    guiobj.justify = get_property_value("Justify")
+    guiobj.show = get_property_value("Show")
+    guiobj.associated_variable = get_property_value("Associated Variable")
+    guiobj.validate = get_property_value("Validate")
+    guiobj.validate_command = get_property_value("Validate Command")
 
 
 def load_entry_properties(guiobj):
-    property_entries["Justify"].delete(0, tk.END)
-    property_entries["Show"].delete(0, tk.END)
-    property_entries["Associated Variable"].delete(0, tk.END)
-    property_entries["Validate"].delete(0, tk.END)
-    property_entries["Validate Command"].delete(0, tk.END)
     if isinstance(guiobj, GUIObj.Entry):
-        property_entries["Justify"].configure(state=tk.NORMAL)
-        property_entries["Show"].configure(state=tk.NORMAL)
-        property_entries["Associated Variable"].configure(state=tk.NORMAL)
-        property_entries["Validate"].configure(state=tk.NORMAL)
-        property_entries["Validate Command"].configure(state=tk.NORMAL)
-        property_entries["Justify"].insert(0, guiobj.justify)
-        property_entries["Show"].insert(0, guiobj.show)
-        property_entries["Associated Variable"].insert(0, guiobj.associated_variable)
-        property_entries["Validate"].insert(0, guiobj.validate)
-        property_entries["Validate Command"].insert(0, guiobj.validate_command)
-        
+        load_property("Justify", guiobj.justify)
+        load_property("Show", guiobj.show)
+        load_property("Associated Variable", guiobj.associated_variable)
+        load_property("Validate", guiobj.validate)
+        load_property("Validate Command", guiobj.validate)
     else:
-        property_entries["Justify"].configure(state=tk.DISABLED)
-        property_entries["Show"].configure(state=tk.DISABLED)
-        property_entries["Associated Variable"].configure(state=tk.DISABLED)
-        property_entries["Validate"].configure(state=tk.DISABLED)
-        property_entries["Validate Command"].configure(state=tk.DISABLED)
+        hide_property("Justify")
+        hide_property("Show")
+        hide_property("Associated Variable")
+        hide_property("Validate")
+        hide_property("Validate Command")
 
 
 def save_button_properties(guiobj):
-    guiobj.command = property_entries["Command"].get()
+    guiobj.command = get_property_value("Command")
 
 
 def load_button_properties(guiobj):
-    property_entries["Command"].delete(0, tk.END)
     if isinstance(guiobj, GUIObj.Button):
-        property_entries["Command"].configure(state=tk.NORMAL)
-        property_entries["Command"].insert(0, guiobj.command)
+        load_property("Command", guiobj.command)
     else:
-        property_entries["Command"].configure(state=tk.DISABLED)
+        hide_property("Command")
 
 
 def save_movable_properties(guiobj):
     x = guiobj.position.x
     y = guiobj.position.y
     try:
-        x = int(property_entries["X Position"].get())
+        x = int(get_property_value("X Position"))
     except:
         pass
     try:
-        y = int(property_entries["Y Position"].get())
+        y = int(get_property_value("Y Position"))
     except:
         pass
     guiobj.position = GUIObj.Vector(x, y)
 
 
 def load_movable_properties(guiobj):
-    property_entries["X Position"].delete(0, tk.END)
-    property_entries["Y Position"].delete(0, tk.END)
     if isinstance(guiobj, GUIObj.MovableWidget):
-        property_entries["X Position"].configure(state=tk.NORMAL)
-        property_entries["Y Position"].configure(state=tk.NORMAL)
-        property_entries["X Position"].insert(0, guiobj.position.x)
-        property_entries["Y Position"].insert(0, guiobj.position.y)
+        load_property("X Position", guiobj.position.x)
+        load_property("Y Position", guiobj.position.y)
     else:
-        property_entries["X Position"].configure(state=tk.DISABLED)
-        property_entries["Y Position"].configure(state=tk.DISABLED)
+        hide_property("X Position")
+        hide_property("Y Position")
 
 
 def save_sizable_properties(guiobj):
     x = guiobj.size.x
     y = guiobj.size.y
     try:
-        x = int(property_entries["Width"].get())
+        x = int(get_property_value("Width"))
     except:
         pass
     try:
-        y = int(property_entries["Height"].get())
+        y = int(get_property_value("Height"))
     except:
         pass
     guiobj.size = GUIObj.Vector(x, y)
 
 
 def load_sizable_properties(guiobj):
-    property_entries["Width"].delete(0, tk.END)
-    property_entries["Height"].delete(0, tk.END)
     if isinstance(guiobj, GUIObj.SizableWidget):
-        property_entries["Width"].configure(state=tk.NORMAL)
-        property_entries["Height"].configure(state=tk.NORMAL)
-        property_entries["Width"].insert(0, guiobj.size.x)
-        property_entries["Height"].insert(0, guiobj.size.y)
+        load_property("Width", guiobj.size.x)
+        load_property("Height", guiobj.size.y)
     else:
-        property_entries["Width"].configure(state=tk.DISABLED)
-        property_entries["Height"].configure(state=tk.DISABLED)
+        hide_property("Width")
+        hide_property("Height")
 
 
 def save_textcontainer_properties(guiobj):
-    guiobj.text = property_entries["Text"].get()
+    guiobj.text = get_property_value("Text")
     # TODO: save font
 
 
 def load_textcontainer_properties(guiobj):
-    property_entries["Text"].delete(0, tk.END)
     if isinstance(guiobj, GUIObj.TextContainer):
-        property_entries["Text"].configure(state=tk.NORMAL)
-        property_entries["Text"].insert(0, guiobj.text)
+        load_property("Text", guiobj.text)
     else:
-        property_entries["Text"].configure(state=tk.DISABLED)
+        hide_property("Text")
 
 
 def save_widget_properties(guiobj):
@@ -285,16 +310,14 @@ def load_widget_properties(guiobj):
 
 
 def save_guiobj_properties(guiobj):
-    guiobj.name = property_entries["Name"].get()
+    guiobj.name = get_property_value("Name")
 
 
 def load_guiobj_properties(guiobj):
-    property_entries["Name"].delete(0, tk.END)
     if isinstance(guiobj, GUIObj.GUIObj):
-        property_entries["Name"].configure(state=tk.NORMAL)
-        property_entries["Name"].insert(0, guiobj.name)
+        load_property("Name", guiobj.name)
     else:
-        property_entries["Name"].configure(state=tk.DISABLED)
+        hide_property("Name")
 
 
 def set_background(widget, color):
