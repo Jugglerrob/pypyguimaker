@@ -16,6 +16,12 @@ class Vector:
         self.y = y
 
 
+class Sized:
+    """Represents an object with a size"""
+    def __init__(self, size=Vector(0, 0), **kwargs):
+        self.size = size
+
+
 class GUIObj:
     """Represents the most basic gui object"""
     def __init__(self, name="", class_variable=False, **kwargs):
@@ -43,7 +49,7 @@ class Container(GUIObj):
         return list(self.__children)
 
 
-class Window(Container):
+class Window(Container, Sized):
     """Represents a window on the screen. Is a Container for other widgets"""
     def __init__(self, title="", size=Vector(600, 800), **kwargs):
         super().__init__(**kwargs)
@@ -51,7 +57,7 @@ class Window(Container):
         self.size = size
 
 
-class Widget(GUIObj):
+class Widget(GUIObj, Sized):
     """Represents all tk widgets. Must be a child of a container."""
     def __init__(self, parent=None, **kwargs):
         super().__init__(**kwargs)
@@ -79,9 +85,12 @@ class MovableWidget(Widget):
 
 
 class SizableWidget(Widget):
-    """A Widget that has a size"""
+    """
+    A Widget that has a size
+    Must implement resized event
+    """
     def __init__(self, size=Vector(0, 0), **kwargs):
-        super().__init__(**kwargs)
+        super().__init__(size=size, **kwargs)
         self.size = size
 
 
@@ -180,12 +189,15 @@ class TkMovableWidgetImpl(MovableWidget, TkWidgetImpl):
     By inheriting from this class <B1-Motion> is bound on the widget to implement dragging.
     """
     def __init__(self, position=Vector(0, 0), **kwargs):
+        self.__maxpos = Vector(0, 0)
         self.__click_offset = Vector(0, 0)
         self._position = Vector(0, 0)
         super().__init__(**kwargs)
-        self.position = position
+        self.__recalc_maxpos(None, position) # this also set the position
+
         self.widget.bind("<B1-Motion>", self.__drag, add="+")
         self.widget.bind("<Button-1>", self.__click, add="+")
+        self.bind_event("resized", self.__recalc_maxpos)
 
     def __drag(self, event):
         """
@@ -195,6 +207,7 @@ class TkMovableWidgetImpl(MovableWidget, TkWidgetImpl):
         new_pos = Vector(0, 0)
         new_pos.x = event.x_root - self.__click_offset.x
         new_pos.y = event.y_root - self.__click_offset.y
+        
         self.position = new_pos
 
     def __click(self, event):
@@ -203,15 +216,44 @@ class TkMovableWidgetImpl(MovableWidget, TkWidgetImpl):
         """
         self.__click_offset = Vector(event.x_root - self.position.x, event.y_root - self.position.y)
 
+
+    def __recalc_maxpos(self, event=None, position=None):
+        """
+        Called when the user resizes the widget or parent widget, or durring __init__
+        """
+        maxwidth = 0
+        maxheight = 0
+        if isinstance(self.parent, Sized):
+            max_x = self.parent.size.x - self.size.x
+            max_y = self.parent.size.y - self.size.y
+        self.__maxpos = Vector(max_x, max_y)
+        if position is None:
+            self.position = self.position
+        else:
+            self.position = position
+
+
     @property
     def position(self):
         return self._position
 
     @position.setter
     def position(self, value):
+        # Check to make sure we are not moving outside of bounds
+        # This check might not work if the parent does not have a size
+        if value.x > self.__maxpos.x:
+            value.x = self.__maxpos.x
+        if value.y > self.__maxpos.y:
+            value.y = self.__maxpos.y
+        if value.x < 0:
+            value.x = 0
+        if value.y < 0:
+            value.y = 0
+        
         # calculate the delta and move the view_id by the delta
         delta_x = value.x - self.position.x
         delta_y = value.y - self.position.y
+        
         self.canvas.move(self.view_id, delta_x, delta_y)
         self._position = value
         # callback

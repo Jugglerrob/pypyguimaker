@@ -80,8 +80,9 @@ def initialize():
     root.config(menu=menubar)
     
     load("test_gui.py")
-    
-    root.mainloop()
+
+    #for obj in gui_objects:
+    #    print(obj.name)
 
 
 def create_property_option(panel, options):
@@ -141,7 +142,6 @@ def set_property_value(name, value):
         property_entries[name][1].delete(0, tk.END)
         property_entries[name][1].insert(0, value);
     else: # otherwise we are setting the property of an associated variable
-        print(value)
         property_entries[name][1].set(value)
 
 
