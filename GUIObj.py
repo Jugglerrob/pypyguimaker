@@ -16,6 +16,10 @@ class Vector:
         self.y = y
 
 
+    def __str__(self):
+        return "Vector: %f, %f" % (self.x, self.y)
+
+
 class Sized:
     """Represents an object with a size"""
     def __init__(self, size=Vector(0, 0), **kwargs):
@@ -83,7 +87,7 @@ class MovableWidget(Widget):
         self.position = position
 
 
-class SizableWidget(Widget):
+class SizableWidget(Widget, Sized):
     """
     A Widget that has a size
     Must implement resized event
@@ -94,7 +98,7 @@ class SizableWidget(Widget):
 
 
 class TkWidgetImpl(Widget):
-    def __init__(self, widget=None, canvas=None, **kwargs):
+    def __init__(self, widget=None, parent=None, **kwargs):
         """
         @type widget: tk.Widget
         @type canvas: tk.Canvas
@@ -124,8 +128,8 @@ class TkWidgetImpl(Widget):
               use TkSizableWidgetImpl.
         """
 
-        super().__init__(**kwargs)
-        self.canvas = canvas
+        super().__init__(parent=parent, **kwargs)
+        self.canvas = parent.widget
         self.widget = widget
         self.window = tk.Canvas()  # the window is a canvas that contains everything related to the widget
         # create the selection outline
@@ -140,7 +144,7 @@ class TkWidgetImpl(Widget):
         self.__widget_id = self.window.create_window(0, 0, window=widget, width=0, anchor=tk.NW,
                                   height=0)
         # the view id is used to keep track of everything INCLUDING the window canvas on the main canvas
-        self.view_id = canvas.create_window(0, 0, window=self.window, anchor=tk.NW)
+        self.view_id = self.canvas.create_window(0, 0, window=self.window, anchor=tk.NW)
         self._selected = False
         # bind the widget and move it to the front
         self.widget.bind("<Button-1>", self.__select, add="+")
@@ -222,8 +226,8 @@ class TkMovableWidgetImpl(MovableWidget, TkWidgetImpl):
         Recalculates and fixes the maximum x and y positions.
         Called when the user resizes the widget or parent widget, or durring __init__
         """
-        maxwidth = 0
-        maxheight = 0
+        max_x = 0
+        max_y = 0
         if isinstance(self.parent, Sized):
             max_x = self.parent.size.x - self.size.x
             max_y = self.parent.size.y - self.size.y
@@ -466,7 +470,7 @@ class TtkEntryImpl(TkSizableWidgetImpl, TkMovableWidgetImpl, Entry):
                   foreground = [("disabled", "black") ] # requried to make the text appear black instead of disabled
                   )
         new_entry = ttk.Entry(canvas.winfo_toplevel(), style="EntryStyle.TEntry", state=tk.DISABLED)
-        super().__init__(widget=new_entry, canvas=canvas, text=text, justify=justify, validate=validate, validate_command=validate_command, associated_variable=associated_variable, **kwargs)
+        super().__init__(widget=new_entry, text=text, justify=justify, validate=validate, validate_command=validate_command, associated_variable=associated_variable, **kwargs)
         self.text = text
         self.justify = justify
         self.show = show
@@ -511,6 +515,13 @@ class TtkEntryImpl(TkSizableWidgetImpl, TkMovableWidgetImpl, Entry):
         self._show = value
         self.widget["show"] = value
         
+
+class WindowImpl(Window):
+    def __init__(self, canvas=None, size=Vector(0, 0), **kwargs):
+        super().__init__(size=size, **kwargs)
+        self.widget = tk.Canvas(canvas, width=size.x, height=size.y)
+        self.view_id = canvas.create_window(0, 0, window=self.widget, anchor=tk.NW)
+
 
 if __name__ == "__main__":
     root = tk.Tk()

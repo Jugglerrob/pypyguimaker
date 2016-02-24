@@ -35,7 +35,7 @@ def initialize():
     main_frame.pack(padx=10, pady=10, side=tk.LEFT, fill=tk.BOTH, expand=True)
     main_title = ttk.Label(main_frame, style='LightBluePrimaryNavLabel.TLabel', text='Window Designer')
     main_title.pack(padx=5, fill=tk.X)
-    main_canvas = tk.Canvas(main_frame, bg=colors.white_primary)
+    main_canvas = tk.Canvas(main_frame, bg=colors.white_secondary, highlightthickness=0)
     main_canvas.pack(fill=tk.BOTH, expand=True)
     main_canvas.bind("<Button-1>", unselect_all)
 
@@ -452,7 +452,7 @@ def load_root(obj, assignments, method_calls):
     """
     # the Tk type should only be instantiated once and is represented by a window obj
     title = ""
-    size = GUIObj.Vector(600, 800)
+    size = GUIObj.Vector(800, 600)
     # find the parameters for the window
     # almost everything for window is in single argument method calls
     if "title" in method_calls:
@@ -463,7 +463,7 @@ def load_root(obj, assignments, method_calls):
         x = int(method_calls["geometry"].args[0].split("x")[0])
         y = int(method_calls["geometry"].args[0].split("x")[1])
         size = GUIObj.Vector(x, y)
-    new_window = GUIObj.Window(title=title, size=size, name=obj.object_name)
+    new_window = GUIObj.WindowImpl(canvas=main_canvas, title=title, size=size, name=obj.object_name)
     gui_objects.append(new_window)
 
 
@@ -504,7 +504,7 @@ def load_button(obj, assignments, method_calls):
     if parent == None:
         print ("Error when loading objects. cannot find parent of %s named %s" %(obj.name, parent_name))
 
-    new_button = GUIObj.TtkButtonImpl(name=obj.object_name, canvas=main_canvas, position=position, size=size, parent=parent, command=command, text=text)
+    new_button = GUIObj.TtkButtonImpl(name=obj.object_name, canvas=parent.widget, position=position, size=size, parent=parent, command=command, text=text)
     new_button.bind_event("selected", on_selection)
     gui_objects.append(new_button)
 
@@ -538,7 +538,7 @@ def load_label(obj, assignments, method_calls):
             if "height" in method.keywords:
                 size.y = int(method.keywords["height"])
 
-    new_label = GUIObj.TtkLabelImpl(name=obj.object_name, canvas=main_canvas, position=position, size=size, parent=parent, text=text)
+    new_label = GUIObj.TtkLabelImpl(name=obj.object_name, canvas=parent.widget, position=position, size=size, parent=parent, text=text)
     new_label.bind_event("selected", on_selection)
     gui_objects.append(new_label)
 
@@ -577,7 +577,7 @@ def load_entry(obj, assignment, method_calls):
             else:
                 println("Cannot insert text at any place other than 0")
 
-    new_entry = GUIObj.TtkEntryImpl(name=obj.object_name, canvas=main_canvas, position=position, size=size, parent=parent, text=text)
+    new_entry = GUIObj.TtkEntryImpl(name=obj.object_name, canvas=parent.widget, position=position, size=size, parent=parent, text=text)
     new_entry.bind_event("selected", on_selection)
     gui_objects.append(new_entry)
     
