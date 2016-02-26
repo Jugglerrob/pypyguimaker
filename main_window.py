@@ -442,6 +442,8 @@ def load_initialize(source):
             load_label(obj, assignments, method_calls)
         elif obj.object_type == "Entry":
             load_entry(obj, assignments, method_calls)
+        elif obj.object_type == "Checkbutton":
+            load_checkbutton(obj, assignments, method_calls)
         else:
             print("Error when loading objects. Objects of type %s are not yet supported" % (obj.object_type))
 
@@ -520,7 +522,7 @@ def load_label(obj, assignments, method_calls):
     size = GUIObj.Vector(0, 0)
 
     if "text" in obj.keywords:
-        text = obj.keywords["text"]
+        text = obj.keywords["text"]        
 
     for assignment in assignments:
         if isinstance(assignment, guiparser.SubscriptAssignment):
@@ -580,6 +582,41 @@ def load_entry(obj, assignment, method_calls):
     new_entry = GUIObj.TtkEntryImpl(name=obj.object_name, canvas=parent.widget, position=position, size=size, parent=parent, text=text)
     new_entry.bind_event("selected", on_selection)
     gui_objects.append(new_entry)
+
+
+def load_checkbutton(obj, assignments, method_calls):
+    """
+    loads checkbutton into a guiobj
+    """
+    parent_name = obj.args[0]
+    parent = get_guiobj(parent_name)
+    text = ""
+    position = GUIObj.Vector(0, 0)
+    size = GUIObj.Vector(0, 0)
+
+    if "text" in obj.keywords:
+        text = obj.keywords["text"]
+
+    for assignment in assignments:
+        if isinstance(assignment, guiparser.SubscriptAssignment):
+            if assignment.subscript == "text":
+                text = assignment.value
+
+    for method in method_calls.values():
+        if method.method_name == "place":          
+            if "x" in method.keywords:
+                position.x = int(method.keywords["x"])
+            if "y" in method.keywords:
+                position.y = int(method.keywords["y"])
+            if "width" in method.keywords:
+                size.x = int(method.keywords["width"])
+            if "height" in method.keywords:
+                size.y = int(method.keywords["height"])
+
+    new_checkbutton = GUIObj.TtkCheckbuttonImpl(name=obj.object_name, canvas=parent.widget, position=position, size=size, parent=parent, text=text)
+    new_checkbutton.bind_event("Selected", on_selection)
+    gui_objects.append(new_checkbutton)
+            
     
     
 initialize()

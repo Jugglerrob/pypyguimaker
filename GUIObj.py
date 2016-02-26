@@ -390,6 +390,11 @@ class Label(MovableWidget, SizableWidget, TextContainer):
         super().__init__(**kwargs)
 
 
+class Checkbutton(Label):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+
 class Entry(MovableWidget, SizableWidget, TextContainer):
     def __init__(self, justify="left", show="", validate="", validate_command="", associated_variable="", **kwargs):
         super().__init__(**kwargs)
@@ -514,6 +519,25 @@ class TtkEntryImpl(TkSizableWidgetImpl, TkMovableWidgetImpl, Entry):
     def show(self, value):   
         self._show = value
         self.widget["show"] = value
+
+
+class TtkCheckbuttonImpl(TkSizableWidgetImpl, TkMovableWidgetImpl, Checkbutton):
+    def __init__(self, canvas=None, text="", **kwargs):
+        new_label = ttk.Checkbutton(canvas.winfo_toplevel())
+        super().__init__(widget=new_label, canvas=canvas, **kwargs)
+        self.text = text
+
+    @property
+    def text(self):
+        if hasattr(self, '_text'):
+            return self._text
+        else:
+            return ""
+
+    @text.setter
+    def text(self, value):
+        self._text = value
+        self.widget["text"] = self._text
         
 
 class WindowImpl(Window):

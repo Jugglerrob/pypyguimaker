@@ -24,6 +24,10 @@ def initialize():
     myEntry.insert(0, "This is an entry")
     myEntry.place(x=75, y=75, width=100, height=25)
 
+    myCheck = Checkbutton(root)
+    myCheck["text"] = "true/false"
+    myCheck.place(x=200, y=250, width=100, height=20)
+
     root.mainloop()
 
 def bar(event=None):
