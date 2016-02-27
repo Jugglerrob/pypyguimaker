@@ -70,8 +70,10 @@ def initialize():
                 ("On Value", "entry"),
                 ("Off Value", "entry"),
                 ("Take Focus", "entry"),
-                ("Variable", "entry")
+                ("Variable", "entry"),
+                ("Validate Command", "entry")
                 )
+    
     property_entries = {}
     for prop in properties:
         property_entries[prop[0]] = create_property_option(property_frame, prop)
