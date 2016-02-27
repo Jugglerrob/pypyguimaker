@@ -81,6 +81,8 @@ def initialize():
     
     load("test_gui.py")
 
+    root.mainloop()
+
     #for obj in gui_objects:
     #    print(obj.name)
 
