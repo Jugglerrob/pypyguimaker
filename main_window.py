@@ -62,13 +62,15 @@ def initialize():
                 ("Height", "entry"),
                 ("Text", "entry"),
                 ("Command", "entry"),
-                #("Justify", "entry"),
                 ("Justify", "option", ("left", "center", "right")),
                 ("Show", "entry"),
                 ("Associated Variable", "entry"),
                 ("Validate", "option", ("focus", "focusin", "focusout", "key", "all", "none")),
-                #("Validate", "entry"),
-                ("Validate Command", "entry")
+                ("Validate Command", "entry"),
+                ("On Value", "entry"),
+                ("Off Value", "entry"),
+                ("Take Focus", "entry"),
+                ("Variable", "entry")
                 )
     property_entries = {}
     for prop in properties:
