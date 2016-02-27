@@ -23,6 +23,7 @@ class Vector:
 class Sized:
     """Represents an object with a size"""
     def __init__(self, size=Vector(0, 0), **kwargs):
+        super().__init__(**kwargs)
         self.size = size
 
 
@@ -72,7 +73,7 @@ class Window(Container, Sized):
         self.size = size
 
 
-class Widget(GUIObj, Sized):
+class Widget(GUIObj):
     """Represents all tk widgets. Must be a child of a container."""
     def __init__(self, parent=None, **kwargs):
         super().__init__(**kwargs)
@@ -87,7 +88,7 @@ class MovableWidget(Widget):
         self.position = position
 
 
-class SizableWidget(Widget, Sized):
+class SizableWidget(Widget):
     """
     A Widget that has a size
     Must implement resized event
@@ -280,9 +281,9 @@ class TkSizableWidgetImpl(SizableWidget, TkWidgetImpl):
 
     Inheriting from this class will place a square handle on the corner of the widget that can be dragged to resize.
     """
-    def __init__(self, **kwargs):        
-        super().__init__(**kwargs)
+    def __init__(self, **kwargs):
         self._size = self.size
+        super().__init__(**kwargs)
         # create a handle as a frame
         handle = tk.Frame(self.canvas.winfo_toplevel(), bg=colors.lightblue_primary)
         handle_fill = tk.Frame(handle, bg="white")
@@ -301,7 +302,7 @@ class TkSizableWidgetImpl(SizableWidget, TkWidgetImpl):
         self.bind_event("selected", self.__show_handle)
         self.bind_event("unselected", self.__hide_handle)
         # Have the widget update it's size
-        self.size = self.size
+        #self.size = self.size
         self.__click_offset = Vector(0, 0)
 
     def __show_handle(self, event=None):
@@ -347,7 +348,8 @@ class TkSizableWidgetImpl(SizableWidget, TkWidgetImpl):
             self.canvas.itemconfig(self.view_id, width=self.size.x)
             self.canvas.itemconfig(self.view_id, height=self.size.y)
             # adjust the handle position
-            self.window.move(self.__handle_id, delta.x, delta.y)
+            if hasattr(self, "__handle_id"):
+                self.window.move(self.__handle_id, delta.x, delta.y)
             # callback
             if "resized" in self._events:
                 for event in self._events["resized"]:
@@ -366,6 +368,7 @@ class TextContainer:
     """Represents a widget that contains text"""
     def __init__(self, text="", font=Font(), **kwargs):
         super().__init__(**kwargs)
+        print(text)
         self.text = text
         self.font = font
 
@@ -376,26 +379,32 @@ class Frame(Container, MovableWidget, SizableWidget):
         super().__init__(**kwargs)
 
 
-class Button(MovableWidget, SizableWidget, TextContainer):
+class Button(TextContainer, MovableWidget, SizableWidget):
     def __init__(self, command=None, **kwargs):
         """
         @type canvas: tk.Canvas
         """
-        self.command = command
         super().__init__(**kwargs)
+        self.command = command
 
 
-class Label(MovableWidget, SizableWidget, TextContainer):
+class Label(TextContainer, MovableWidget, SizableWidget):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
 
 class Checkbutton(Label):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, command="", offvalue="", onvalue="", takefocus=True, variable="", **kwargs):
+        super().__init__(command=command, offvalue=offvalue, onvalue=onvalue, takefocus=takefocus, variable=variable, **kwargs)
+        print("checkbutton")
+        self.command = command
+        self.offvalue = offvalue
+        self.onvalue = onvalue
+        self.takefoucs = takefocus
+        self.variable = variable
 
 
-class Entry(MovableWidget, SizableWidget, TextContainer):
+class Entry(TextContainer, MovableWidget, SizableWidget):
     def __init__(self, justify="left", show="", validate="", validate_command="", associated_variable="", **kwargs):
         super().__init__(**kwargs)
         self.justify = justify
@@ -405,7 +414,7 @@ class Entry(MovableWidget, SizableWidget, TextContainer):
         self.validate_command = validate_command # a callback to dynamically validate contents
         
 
-class TtkButtonImpl(TkSizableWidgetImpl, TkMovableWidgetImpl, Button, TextContainer):
+class TtkButtonImpl(Button, TkSizableWidgetImpl, TkMovableWidgetImpl):
     def __init__(self, canvas=None, text="", **kwargs):
         """
         @type canvas: tk.Canvas
@@ -431,7 +440,7 @@ class TtkButtonImpl(TkSizableWidgetImpl, TkMovableWidgetImpl, Button, TextContai
         self.widget["text"] = self._text
 
 
-class TtkLabelImpl(TkSizableWidgetImpl, TkMovableWidgetImpl, Label):
+class TtkLabelImpl(Label, TkSizableWidgetImpl, TkMovableWidgetImpl):
     def __init__(self, canvas=None, text="", **kwargs):
         new_label = ttk.Label(canvas.winfo_toplevel(), style="TLabel")
         super().__init__(widget=new_label, canvas=canvas, **kwargs)
@@ -523,6 +532,7 @@ class TtkEntryImpl(TkSizableWidgetImpl, TkMovableWidgetImpl, Entry):
 
 class TtkCheckbuttonImpl(TkSizableWidgetImpl, TkMovableWidgetImpl, Checkbutton):
     def __init__(self, canvas=None, text="", **kwargs):
+        print("******")
         style = ttk.Style()
         # This style removes the focus indicator. When clicking it won't place a dashed line around the label
         # There would appear to be no way to disabled the hover color
@@ -533,13 +543,11 @@ class TtkCheckbuttonImpl(TkSizableWidgetImpl, TkMovableWidgetImpl, Checkbutton):
                              ('Checkbutton.label', {'sticky': 'nswe'})],               
                             'side': 'left'})]
                      )
-        print(style.element_options("plain.indicator"))
-        print(style.map("CheckbuttonStyle.Checkbutton"))
         self.intvar = tk.IntVar()
         self.intvar.set(0)
         new_checkbutton = ttk.Checkbutton(canvas.winfo_toplevel(), style="CheckbuttonStyle.Checkbutton", variable=self.intvar, offvalue=0, onvalue=0)
-        super().__init__(widget=new_checkbutton, canvas=canvas, **kwargs)
-        self.text = text
+        self._text = text
+        super().__init__(text=text, widget=new_checkbutton, canvas=canvas, **kwargs)
 
     @property
     def text(self):
