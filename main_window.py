@@ -616,7 +616,7 @@ def load_checkbutton(obj, assignments, method_calls):
                 size.y = int(method.keywords["height"])
 
     new_checkbutton = GUIObj.TtkCheckbuttonImpl(name=obj.object_name, canvas=parent.widget, position=position, size=size, parent=parent, text=text)
-    new_checkbutton.bind_event("Selected", on_selection)
+    new_checkbutton.bind_event("selected", on_selection)
     gui_objects.append(new_checkbutton)
             
     
