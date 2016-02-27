@@ -423,9 +423,7 @@ class TtkButtonImpl(Button, TkSizableWidgetImpl, TkMovableWidgetImpl):
         
         new_button = ttk.Label(canvas.winfo_toplevel(), style="TButton")
 
-        super().__init__(widget=new_button, canvas=canvas, **kwargs)
-
-        self.text = text
+        super().__init__(widget=new_button, text=text, canvas=canvas, **kwargs)
 
     @property
     def text(self):
