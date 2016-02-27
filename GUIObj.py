@@ -370,7 +370,6 @@ class TextContainer:
     """Represents a widget that contains text"""
     def __init__(self, text="", font=Font(), **kwargs):
         super().__init__(**kwargs)
-        print(text)
         self.text = text
         self.font = font
 
@@ -398,7 +397,6 @@ class Label(TextContainer, MovableWidget, SizableWidget):
 class Checkbutton(Label):
     def __init__(self, command="", offvalue="", onvalue="", takefocus=True, variable="", **kwargs):
         super().__init__(command=command, offvalue=offvalue, onvalue=onvalue, takefocus=takefocus, variable=variable, **kwargs)
-        print("checkbutton")
         self.command = command
         self.offvalue = offvalue
         self.onvalue = onvalue
@@ -534,7 +532,6 @@ class TtkEntryImpl(TkSizableWidgetImpl, TkMovableWidgetImpl, Entry):
 
 class TtkCheckbuttonImpl(TkSizableWidgetImpl, TkMovableWidgetImpl, Checkbutton):
     def __init__(self, canvas=None, text="", **kwargs):
-        print("******")
         style = ttk.Style()
         # This style removes the focus indicator. When clicking it won't place a dashed line around the label
         # There would appear to be no way to disabled the hover color
