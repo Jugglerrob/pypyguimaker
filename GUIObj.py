@@ -523,8 +523,22 @@ class TtkEntryImpl(TkSizableWidgetImpl, TkMovableWidgetImpl, Entry):
 
 class TtkCheckbuttonImpl(TkSizableWidgetImpl, TkMovableWidgetImpl, Checkbutton):
     def __init__(self, canvas=None, text="", **kwargs):
-        new_label = ttk.Checkbutton(canvas.winfo_toplevel())
-        super().__init__(widget=new_label, canvas=canvas, **kwargs)
+        style = ttk.Style()
+        # This style removes the focus indicator. When clicking it won't place a dashed line around the label
+        # There would appear to be no way to disabled the hover color
+        # One idea would be to create the checkbutton as a label but then it is not possible to set the check on or off
+        style.layout('CheckbuttonStyle.Checkbutton',
+                        [('Checkbutton.padding', {'sticky': 'nswe', 'children':
+                            [('Checkbutton.indicator', {'sticky': '', 'side': 'left'}),
+                             ('Checkbutton.label', {'sticky': 'nswe'})],               
+                            'side': 'left'})]
+                     )
+        print(style.element_options("plain.indicator"))
+        print(style.map("CheckbuttonStyle.Checkbutton"))
+        self.intvar = tk.IntVar()
+        self.intvar.set(0)
+        new_checkbutton = ttk.Checkbutton(canvas.winfo_toplevel(), style="CheckbuttonStyle.Checkbutton", variable=self.intvar, offvalue=0, onvalue=0)
+        super().__init__(widget=new_checkbutton, canvas=canvas, **kwargs)
         self.text = text
 
     @property
