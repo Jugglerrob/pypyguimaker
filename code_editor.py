@@ -6,6 +6,9 @@ import keyword
 import builtins
 
 
+update_time = 20
+
+
 def any(name, alternates):
     "Return a named group pattern matching list of alternates."
     return "(?P<%s>" % name + "|".join(alternates) + ")"
@@ -94,7 +97,7 @@ class CodeEditor(ttk.Frame):
     def update_loop(self):
         self.updateLineNumbers()
         self.colorize()
-        self.text.after(50, self.update_loop)
+        self.text.after(update_time, self.update_loop)
 
     def LoadTagDefs(self):
         #theme = idleConf.GetOption('main','Theme','name')
