@@ -400,7 +400,7 @@ class Checkbutton(Label):
         self.command = command
         self.offvalue = offvalue
         self.onvalue = onvalue
-        self.takefoucs = takefocus
+        self.takefocus = takefocus
         self.variable = variable
 
 

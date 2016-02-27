@@ -194,6 +194,7 @@ def load_properties(guiobj):
     load_textcontainer_properties(guiobj)
     load_entry_properties(guiobj)
     load_button_properties(guiobj)
+    load_checkbutton_properties(guiobj)
 
     root.focus() # reset text focus. Removes any highlighting
 
@@ -202,6 +203,8 @@ def save_properties(guiobj):
     """
     saves all the properties set in the options panel to the selected widget
     """
+    if isinstance(guiobj, GUIObj.Checkbutton):
+        save_checkbutton_properties(guiobj)
     if isinstance(guiobj, GUIObj.Entry):
         save_entry_properties(guiobj)
     if isinstance(guiobj, GUIObj.Button):
@@ -216,6 +219,23 @@ def save_properties(guiobj):
         save_widget_properties(guiobj)
     if isinstance(guiobj, GUIObj.GUIObj):
         save_guiobj_properties(guiobj)
+
+
+def save_checkbutton_properties(guiobj):
+    guiobj.command = get_property_value("Command")
+    guiobj.offvalue = get_property_value("Off Value")
+    guiobj.onvalue = get_property_value("On Value")
+    guiobj.takefocus = get_property_value("Take Focus")
+    guiobj.variable = get_property_value("Variable")
+
+
+def load_checkbutton_properties(guiobj):
+    if isinstance(guiobj, GUIObj.Checkbutton):
+        load_property("Command", guiobj.command)
+        load_property("Off Value", guiobj.offvalue)
+        load_property("On Value", guiobj.onvalue)
+        load_property("Take Focus", guiobj.takefocus)
+        load_property("Variable", guiobj.variable)
 
 
 def save_entry_properties(guiobj):
