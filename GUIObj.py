@@ -283,6 +283,7 @@ class TkSizableWidgetImpl(SizableWidget, TkWidgetImpl):
     """
     def __init__(self, **kwargs):
         self._size = self.size
+        self.__handle_id = "NONE"
         super().__init__(**kwargs)
         # create a handle as a frame
         handle = tk.Frame(self.canvas.winfo_toplevel(), bg=colors.lightblue_primary)
@@ -348,8 +349,9 @@ class TkSizableWidgetImpl(SizableWidget, TkWidgetImpl):
             self.canvas.itemconfig(self.view_id, width=self.size.x)
             self.canvas.itemconfig(self.view_id, height=self.size.y)
             # adjust the handle position
-            if hasattr(self, "__handle_id"):
-                self.window.move(self.__handle_id, delta.x, delta.y)
+            #if hasattr(self, "__handle_id"):
+            self.window.move(self.__handle_id, delta.x, delta.y)
+            
             # callback
             if "resized" in self._events:
                 for event in self._events["resized"]:
