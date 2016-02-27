@@ -53,6 +53,8 @@ def initialize():
     property_frame.pack(pady=4, fill=tk.Y)
     property_frame.pack_propagate(0) # prevents the frame from resizing
 
+    # This specifies what properties to place in the properties panel
+    #((Property name, property type, (objects to display for), (options))
     properties=(("Name", "entry"),
                 ("Y Position", "entry"),
                 ("X Position", "entry"),
@@ -83,9 +85,6 @@ def initialize():
 
     root.mainloop()
 
-    #for obj in gui_objects:
-    #    print(obj.name)
-
 
 def create_property_option(panel, options):
     """
@@ -115,9 +114,6 @@ def create_property_option(panel, options):
         return (frame, text)
 
     elif input_type == "option":
-        # will not produce valid widget.
-        # .get() will not work
-        # cannot be disabled
         value = tk.StringVar()
         value.set("left")
         option = ttk.OptionMenu(frame, value, options[2][0], *options[2])
@@ -127,6 +123,13 @@ def create_property_option(panel, options):
         value.trace("w", lambda *args: save_selectedobj_properties())
         
         return (frame, value)
+
+def hide_all_properties():
+    """
+    hides all properties
+    """
+    for name in property_entries.keys():
+        hide_property(name)
 
 
 def get_property_value(name):
@@ -178,7 +181,8 @@ def save_selectedobj_properties():
 
 
 def load_properties(guiobj):
-    # The order of these calls determine the ordering of the property entries
+    hide_all_properties()
+    # The ordering of these calls determines the position of the properties
     load_guiobj_properties(guiobj)
     load_widget_properties(guiobj)
     load_movable_properties(guiobj)
@@ -225,12 +229,6 @@ def load_entry_properties(guiobj):
         load_property("Associated Variable", guiobj.associated_variable)
         load_property("Validate", guiobj.validate)
         load_property("Validate Command", guiobj.validate)
-    else:
-        hide_property("Justify")
-        hide_property("Show")
-        hide_property("Associated Variable")
-        hide_property("Validate")
-        hide_property("Validate Command")
 
 
 def save_button_properties(guiobj):
@@ -240,8 +238,6 @@ def save_button_properties(guiobj):
 def load_button_properties(guiobj):
     if isinstance(guiobj, GUIObj.Button):
         load_property("Command", guiobj.command)
-    else:
-        hide_property("Command")
 
 
 def save_movable_properties(guiobj):
@@ -262,9 +258,6 @@ def load_movable_properties(guiobj):
     if isinstance(guiobj, GUIObj.MovableWidget):
         load_property("X Position", guiobj.position.x)
         load_property("Y Position", guiobj.position.y)
-    else:
-        hide_property("X Position")
-        hide_property("Y Position")
 
 
 def save_sizable_properties(guiobj):
@@ -285,9 +278,6 @@ def load_sizable_properties(guiobj):
     if isinstance(guiobj, GUIObj.SizableWidget):
         load_property("Width", guiobj.size.x)
         load_property("Height", guiobj.size.y)
-    else:
-        hide_property("Width")
-        hide_property("Height")
 
 
 def save_textcontainer_properties(guiobj):
@@ -298,8 +288,6 @@ def save_textcontainer_properties(guiobj):
 def load_textcontainer_properties(guiobj):
     if isinstance(guiobj, GUIObj.TextContainer):
         load_property("Text", guiobj.text)
-    else:
-        hide_property("Text")
 
 
 def save_widget_properties(guiobj):
@@ -318,8 +306,6 @@ def save_guiobj_properties(guiobj):
 def load_guiobj_properties(guiobj):
     if isinstance(guiobj, GUIObj.GUIObj):
         load_property("Name", guiobj.name)
-    else:
-        hide_property("Name")
 
 
 def set_background(widget, color):
@@ -373,7 +359,6 @@ def unselect_others(exluded):
             if obj is selected_object:
                 save_properties(obj)
                 selected_object = None
-                load_properties(None)
 
 
 def unselect_all(event=None):
@@ -387,7 +372,6 @@ def unselect_all(event=None):
     if selected_object is not None:
         save_properties(selected_object)
         selected_object = None
-        load_properties(None)
 
 
 def clear():
