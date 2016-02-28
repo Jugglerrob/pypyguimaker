@@ -71,6 +71,7 @@ def match_opener(line):
         ^
         [ \t]*
         (?: while
+        |   if
         |   else
         |   def
         |   return
