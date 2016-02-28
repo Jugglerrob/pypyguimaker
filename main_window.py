@@ -19,8 +19,12 @@ def initialize():
 
     root = tk.Tk()
     root.configure(background=colors.background)
+    root.pack_propagate(0)
+    width = 600
+    height = 800
+    root.geometry("%dx%d" % (width, height))
+    root.state("zoomed") # sets to maximized. Supposably only works on windows and some linux machines
     
-
     bold = fonts.Font(weight="bold", size=10)
 
     style = ttk.Style()
