@@ -132,6 +132,7 @@ class TkWidgetImpl(Widget):
         super().__init__(parent=parent, **kwargs)
         self.canvas = parent.widget
         self.widget = widget
+        self.widget["cursor"] = "arrow" # makes the cursor always be the arrow
         self.window = tk.Canvas()  # the window is a canvas that contains everything related to the widget
         # create the selection outline
         # We use a blue frame and make it 4 pixels wider than the window canvas
