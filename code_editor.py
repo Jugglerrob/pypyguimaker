@@ -207,8 +207,24 @@ class CodeEditor(ttk.Frame):
                 #    if DEBUG: print("colorizing stopped")
                 #    return
 
+    def __getitem__(self, key):
+        if key == "text":
+            return self.text.get("1.0", tk.END)
+        else:
+            super().__getitem__(key)
+
+
+    def __setitem__(self, key, value):
+        if key == "text":
+            self.text.delete("1.0", tk.END)
+            self.text.insert("1.0", value)
+        else:
+            super().__setitem__(key, value)
+
 
 if __name__ == "__main__":
     root = tk.Tk()
-    CodeEditor(root).pack(side="top", fill="both", expand=True)
+    editor = CodeEditor(root)
+    editor.pack(side="top", fill="both", expand=True)
+    editor["text"] = "\"this is some\"\n#text"
     root.mainloop()
