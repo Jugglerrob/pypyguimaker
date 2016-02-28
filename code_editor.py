@@ -39,6 +39,7 @@ idprog = re.compile(r"\s+(\w+)", re.S)
 
 class CodeEditor(ttk.Frame):
     def __init__(self, parent, *args, **kwargs):
+        self.is_modifing = False
         ttk.Frame.__init__(self, parent)
         self.lineNumbers = ""
         self.linenums_text = tk.Text(self,
@@ -76,9 +77,12 @@ class CodeEditor(ttk.Frame):
 
     def _modified(self, event=None):
         """Called when the text area is modified. Redraws lines numers and and recolorizes"""
-        self.updateLineNumbers()
-        self.colorize()
-        self.text.edit_modified(False)
+        if not self.is_modifing:
+            self.is_modifiying = True
+            self.updateLineNumbers()
+            self.colorize()
+            self.text.edit_modified(False)
+            self.is_modifing = False
 
     def _newline_indent(self, event=None):
         """called when the user adds a new line. Calculates the correct indent to place"""
@@ -121,6 +125,8 @@ class CodeEditor(ttk.Frame):
         nl = '\n'
         lineMask = '    %s\n'
         indexMask = '@0,%d'
+
+        self.update_idletasks() # required to make sure the height is correct
         
         for i in range(0, self.text.winfo_height(), step):
             

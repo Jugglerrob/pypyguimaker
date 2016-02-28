@@ -107,6 +107,7 @@ def initialize():
 def show_code(event=None):
     main_canvas.pack_forget()
     code_editor.pack(fill=tk.BOTH, expand=True)
+    code_editor._modified() # redraw and recolor
     code_title.configure(style='LightBluePrimaryNavLabel.TLabel')
     designer_title.configure(style='WhiteDisabledNavLabel.TLabel')
 
@@ -491,6 +492,7 @@ def load_code(source):
             else:
                 continue
     code_editor["text"] = "\n".join(src)
+    code_editor.updateLineNumbers()
                 
 
 def load_initialize(source):
