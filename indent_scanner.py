@@ -33,6 +33,7 @@ class IndentScanner:
         # This can be done by removing the last line and checking if there is now an open string
         while i > 1:
             if match_open_string(" ".join(self.lines[0:i])):
+                print("o")
                 i -= 1
             else:
                 break
