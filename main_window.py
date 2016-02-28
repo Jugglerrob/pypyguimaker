@@ -5,6 +5,7 @@ import tkinter.ttk as ttk
 import tkinter.font as fonts
 import tkinter.filedialog
 import colors
+import code_editor as editor
 
 gui_objects = [] # all gui objs in the designer
 selected_object = None # The currently selected gui obj
@@ -14,7 +15,7 @@ main_canvas = None # The main canvas to put new gui objs on
 
 
 def initialize():
-    global root, main_canvas, property_entries, property_frame
+    global root, main_canvas, property_entries, property_frame, designer_title, code_title, code_editor
 
     root = tk.Tk()
     root.configure(background=colors.background)
@@ -26,6 +27,7 @@ def initialize():
     style.configure('TFrame', background=colors.white_primary)
     style.configure('BackgroundFrame.TFrame', background=colors.background)
     style.configure('LightBluePrimaryNavLabel.TLabel', foreground=colors.background, background=colors.lightblue_primary)
+    style.configure('WhiteDisabledNavLabel.TLabel', background=colors.white_disabled)
     style.configure('LightBluePrimaryFrame.TFrame', background=colors.lightblue_primary)
 
     root_frame = ttk.Frame(root, style='BackgroundFrame.TFrame') # The root frame is just a giant frame used to add extra padding between the window border and elements
@@ -33,11 +35,19 @@ def initialize():
 
     main_frame = ttk.Frame(root_frame, style='LightBluePrimaryFrame.TFrame')
     main_frame.pack(padx=10, pady=10, side=tk.LEFT, fill=tk.BOTH, expand=True)
-    main_title = ttk.Label(main_frame, style='LightBluePrimaryNavLabel.TLabel', text='Window Designer')
-    main_title.pack(padx=5, fill=tk.X)
+    nav_frame = ttk.Frame(main_frame, style='LightBluePrimaryFrame.TFrame')
+    nav_frame.pack(side=tk.TOP, fill=tk.X)
+    tk.Grid.columnconfigure(nav_frame, 1, weight=1)
+    designer_title = ttk.Label(nav_frame, style='LightBluePrimaryNavLabel.TLabel', text='Window Designer')
+    designer_title.grid(row=0, column=0, sticky="EW", ipadx=4)
+    designer_title.bind("<Button-1>", show_designer)
+    code_title = ttk.Label(nav_frame, style='WhiteDisabledNavLabel.TLabel', text='Code Editor')
+    code_title.grid(row=0, column=1, sticky="EW", ipadx=4)
+    code_title.bind("<Button-1>", show_code)
     main_canvas = tk.Canvas(main_frame, bg=colors.white_secondary, highlightthickness=0)
     main_canvas.pack(fill=tk.BOTH, expand=True)
     main_canvas.bind("<Button-1>", unselect_all)
+    code_editor = editor.CodeEditor(main_frame)
 
     right_frame = ttk.Frame(root_frame)
     right_frame.pack(side=tk.LEFT, padx=10, pady=10, fill=tk.Y)
@@ -88,6 +98,20 @@ def initialize():
     load("test_gui.py")
 
     root.mainloop()
+
+
+def show_code(event=None):
+    main_canvas.pack_forget()
+    code_editor.pack(fill=tk.BOTH, expand=True)
+    code_title.configure(style='LightBluePrimaryNavLabel.TLabel')
+    designer_title.configure(style='WhiteDisabledNavLabel.TLabel')
+
+
+def show_designer(event=None):
+    code_editor.pack_forget()
+    main_canvas.pack(fill=tk.BOTH, expand=True)
+    designer_title.configure(style='LightBluePrimaryNavLabel.TLabel')
+    code_title.configure(style='WhiteDisabledNavLabel.TLabel')
 
 
 def create_property_option(panel, options):
