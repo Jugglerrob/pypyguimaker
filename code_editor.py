@@ -59,6 +59,9 @@ class CodeEditor(ttk.Frame):
         self.text.bind("<<Modified>>", self._modified)
         self.text.bind("<Key-Return>", self._newline_indent)
         self.text.bind("<Key-KP_Enter>", self._newline_indent)
+        self.text.bind("<Key-Tab>", self._indent)
+        self.text.bind("<<Paste>>", lambda event: self.text.after(0, self.replace_indents))
+        self.text.bind("<<PasteSelection>>", lambda event: self.text.after(0, self.replace_indents))
         vert_scrollbar = ttk.Scrollbar(self)
         vert_scrollbar.grid(row=0, column=2, sticky="NS")
         horz_scrollbar = ttk.Scrollbar(self, orient=tk.HORIZONTAL)
@@ -89,6 +92,17 @@ class CodeEditor(ttk.Frame):
     def _newline_indent_add(self, row, indent):
         """is the defered portion of the newline_indent. Called after the text has added the new line"""
         self.text.insert("%d.0" % (row+1), " " * indent)
+
+    def _indent(self, event=None):
+        """called when the user presses the tab key. Replaces tabs with spaces"""
+        self.text.insert(tk.INSERT, " " * 4)
+        return 'break'
+
+    def replace_indents(self):
+        """replaces all indents with 4 spaces"""
+        text = self["text"]
+        text = text.replace("\t", " " * 4)
+        self["text"] = text
 
     # This method is taken from http://tkinter.unpythonic.net/wiki/A_Text_Widget_with_Line_Numbers
     def getLineNumbers(self):
