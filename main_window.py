@@ -457,8 +457,41 @@ def load(filename):
     file = open(filename, "r")
     source = file.read()
     file.close()
+    load_code(source)
     load_initialize(source)
 
+
+def load_code(source):
+    src = [] # lines of source code
+    # This state machine loads every line into src besides "initialize()" and everything inside "def initialize()"
+    state = "NORMAL"
+    indent_level = 0
+    for line in source.splitlines():
+        if state == "NORMAL":
+            if line.strip(' ') == 'def initialize():':
+                state = "INITIALIZE_START"
+                continue
+            if line == "initialize()":
+                continue
+            else:
+                src.append(line)
+        elif state == "INITIALIZE_START":
+            state = "INITIALIZE"
+            indent_level = len(line) - len(line.lstrip(' '))
+            continue
+        elif state == "INITIALIZE":
+            if line.lstrip(' ').startswith('#'):
+                continue
+            elif len(line.lstrip(' ')) == 0:
+                continue
+            elif len(line) - len(line.lstrip(' ')) < indent_level:
+                state = "NORMAL"
+                src.append(line)
+                continue
+            else:
+                continue
+    code_editor["text"] = "\n".join(src)
+                
 
 def load_initialize(source):
     """
