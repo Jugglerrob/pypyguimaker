@@ -14,7 +14,9 @@ def any(name, alternates):
     return "(?P<%s>" % name + "|".join(alternates) + ")"
 
 
+# Taken for Python3.5\Lib\idlelib\ColorDelegator.py
 def make_pat():
+    """constructs a pattern that represents python syntax"""
     kw = r"\b" + any("KEYWORD", keyword.kwlist) + r"\b"
     builtinlist = [str(name) for name in dir(builtins)
                                         if not name.startswith('_') and \
@@ -39,7 +41,7 @@ idprog = re.compile(r"\s+(\w+)", re.S)
 
 class CodeEditor(ttk.Frame):
     def __init__(self, parent, *args, **kwargs):
-        ttk.Frame.__init__(self, parent)        
+        ttk.Frame.__init__(self, parent)
         self.lineNumbers = ""
         self.linenums_text = tk.Text(self,
                                      width=4,
@@ -49,9 +51,23 @@ class CodeEditor(ttk.Frame):
                                      background = colors.white_primary,
                                      foreground = colors.lightblue_primary,
                                      state='disabled')
-        self.linenums_text.pack(side=tk.LEFT, fill="y", padx=4)
-        self.text = tk.Text(self, undo=True, highlightthickness = 0, bd = 0)
-        self.text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        self.linenums_text.grid(row=0, column=0, padx=4, sticky="NS")
+        self.text = tk.Text(self,
+                            undo=True,
+                            highlightthickness=0,
+                            bd=0,
+                            wrap=tk.NONE)
+        self.text.grid(row=0, column=1, sticky="NSEW")
+        vert_scrollbar = ttk.Scrollbar(self)
+        vert_scrollbar.grid(row=0, column=2, sticky="NS")
+        horz_scrollbar = ttk.Scrollbar(self, orient=tk.HORIZONTAL)
+        horz_scrollbar.grid(row=1, column=1, sticky="WE")
+        self.text.config(yscrollcommand=vert_scrollbar.set)
+        self.text.config(xscrollcommand=horz_scrollbar.set)
+        vert_scrollbar.config(command=self.text.yview)
+        horz_scrollbar.config(command=self.text.xview)
+        tk.Grid.columnconfigure(self, 1, weight=1)
+        tk.Grid.rowconfigure(self, 0, weight=1)
         self.LoadTagDefs()
         self.update_loop()
 
@@ -119,7 +135,7 @@ class CodeEditor(ttk.Frame):
             self.text.tag_config(tag, foreground=self.tagdefs[tag]["foreground"])
 
 
-    # This is taken from Python 3.5\Lib\idlelib\ColorDelegator.py
+    # This is taken and modified from Python 3.5\Lib\idlelib\ColorDelegator.py
     def colorize(self):
         """
         Scan the text area and add color based on python syntax
