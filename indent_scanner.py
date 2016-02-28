@@ -114,85 +114,75 @@ def match_open_string(text):
     """returns True if a multiline string is opened and NOT closed"""
     quotes = ["'", '"']
     for quote in quotes:
-        state = 0
+        state = "ENTER"
         for char in text:
-            if state == 0:
+            if state == "ENTER":
                 if char == quote:
-                    state = 1
+                    state = "FIRST_OPEN_QUOTE"
                     continue
                 elif char == '\\':
-                    state = 8
+                    state = "OPENING_ESCAPED_CHAR"
                     continue
                 else:
-                    state = 0
+                    state = "ENTER"
                     continue
-            elif state == 1:
+            elif state == "FIRST_OPEN_QUOTE":
                 if char == quote:
-                    state = 2
+                    state = "SECOND_OPEN_QUOTE"
                     continue
                 elif char == '\\':
-                    state = 8
+                    state = "OPENING_ESCAPED_CHAR"
                     continue
                 else:
-                    state = 0
+                    state = "ENTER"
                     continue
-            elif state == 2:
+            elif state == "SECOND_OPEN_QUOTE":
                 if char == quote:
-                    state = 3
+                    state = "INNER_QUOTE"
                     continue
                 if char == '\\':
-                    state = 8
+                    state = "OPENING_ESCAPED_CHAR"
                     continue
                 else:
-                    state = 0
+                    state = "ENTER"
                     continue
-            elif state == 3:
-                if char == quote:
-                    state = 5
-                    continue
-                elif char == '\\':
-                    state = 4
-                    continue
-                else:
-                    state = 3
-                    continue
-            elif state == 4:
-                state = 3
+            elif state == "OPENING_ESCAPED_CHAR":
+                state = "ENTER"
                 continue
-            elif state == 5:
+            elif state == "INNER_QUOTE":
                 if char == quote:
-                    state = 6
+                    state = "FIRST_ENDING_QUOTE"
                     continue
                 elif char == '\\':
-                    state = 4
+                    state = "INNER_QUOTE_ESCAPED_CHAR"
                     continue
                 else:
-                    state = 3
+                    state = "INNER_QUOTE"
                     continue
-            elif state == 6:
-                if char == quote:
-                    state = 7
-                    continue
-                if char == '\\':
-                    state = 4
-                    continue
-                else:
-                    state = 3
-                    continue
-            elif state == 7:
-                if char == quote:
-                    state = 1
-                    continue
-                if char == '\\':
-                    state = 8
-                    continue
-                else:
-                    state = 0
-                    continue
-            elif state == 8:
-                state = 0
+            elif state == "INNER_QUOTE_ESCAPED_CHAR":
+                state = "INNER_QUOTE"
                 continue
-        if state in (3, 4, 5, 6):
+            elif state == "FIRST_ENDING_QUOTE":
+                if char == quote:
+                    state = "SECOND_ENDING_QUOTE"
+                    continue
+                elif char == '\\':
+                    state = "INNER_QUOTE_ESCAPED_CHAR"
+                    continue
+                else:
+                    state = "INNER_QUOTE"
+                    continue
+            elif state == "SECOND_ENDING_QUOTE":
+                if char == quote:
+                    state = "FIRST OPEN QUOTE"
+                    continue
+                if char == '\\':
+                    state = "INNER_QUOTE_ESCAPED_CHAR"
+                    continue
+                else:
+                    state = "INNER_QUOTE"
+                    continue
+        if state in ("INNER_QUOTE", "FIRST_ENDING_QUOTE", "SECOND_ENDING_QUOTE", "INNER_QUOTE_ESCAPED_CHAR"):
             return True
     return False
             
