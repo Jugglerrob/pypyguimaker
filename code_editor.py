@@ -172,6 +172,7 @@ class CodeEditor(ttk.Frame):
             self.text.tag_config(tag, background=self.tagdefs[tag]["background"])
             self.text.tag_config(tag, foreground=self.tagdefs[tag]["foreground"])
 
+        self.text.tag_raise("sel")
 
     # This is taken and modified from Python 3.5\Lib\idlelib\ColorDelegator.py
     def colorize(self):
