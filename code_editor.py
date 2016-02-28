@@ -58,6 +58,7 @@ class CodeEditor(ttk.Frame):
                             bd=0,
                             wrap=tk.NONE)
         self.text.grid(row=0, column=1, sticky="NSEW")
+        self.text.bind("<<Modified>>", self._modified)
         vert_scrollbar = ttk.Scrollbar(self)
         vert_scrollbar.grid(row=0, column=2, sticky="NS")
         horz_scrollbar = ttk.Scrollbar(self, orient=tk.HORIZONTAL)
@@ -69,7 +70,12 @@ class CodeEditor(ttk.Frame):
         tk.Grid.columnconfigure(self, 1, weight=1)
         tk.Grid.rowconfigure(self, 0, weight=1)
         self.LoadTagDefs()
-        self.update_loop()
+
+    def _modified(self, event=None):
+        """Called when the text area is modified. Redraws lines numers and and recolorizes"""
+        self.updateLineNumbers()
+        self.colorize()
+        self.text.edit_modified(False)
 
     # This method is taken from http://tkinter.unpythonic.net/wiki/A_Text_Widget_with_Line_Numbers
     def getLineNumbers(self):
@@ -109,11 +115,6 @@ class CodeEditor(ttk.Frame):
             tt.delete("1.0", tk.END)
             tt.insert("1.0", self.lineNumbers)
             tt.config(state="disabled")
-
-    def update_loop(self):
-        self.updateLineNumbers()
-        self.colorize()
-        self.text.after(update_time, self.update_loop)
 
     def LoadTagDefs(self):
         #theme = idleConf.GetOption('main','Theme','name')
