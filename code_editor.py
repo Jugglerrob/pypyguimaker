@@ -4,9 +4,7 @@ import colors as colors
 import re
 import keyword
 import builtins
-
-
-update_time = 20
+import indent_scanner
 
 
 def any(name, alternates):
@@ -59,6 +57,8 @@ class CodeEditor(ttk.Frame):
                             wrap=tk.NONE)
         self.text.grid(row=0, column=1, sticky="NSEW")
         self.text.bind("<<Modified>>", self._modified)
+        self.text.bind("<Key-Return>", self._newline_indent)
+        self.text.bind("<Key-KP_Enter>", self._newline_indent)
         vert_scrollbar = ttk.Scrollbar(self)
         vert_scrollbar.grid(row=0, column=2, sticky="NS")
         horz_scrollbar = ttk.Scrollbar(self, orient=tk.HORIZONTAL)
@@ -76,6 +76,19 @@ class CodeEditor(ttk.Frame):
         self.updateLineNumbers()
         self.colorize()
         self.text.edit_modified(False)
+
+    def _newline_indent(self, event=None):
+        """called when the user adds a new line. Calculates the correct indent to place"""
+        #print("newline")
+        scanner = indent_scanner.IndentScanner(self["text"])
+        row = int(self.text.index(tk.INSERT).split('.')[0]) # This is the row BEFORE the newline we just made
+        # We don't need to adjust row because tk.Text is 1-based index while our scanner is 0-based index
+        indent = scanner.get_new_indentation(row)
+        self.text.after(0, lambda: self._newline_indent_add(row, indent))
+
+    def _newline_indent_add(self, row, indent):
+        """is the defered portion of the newline_indent. Called after the text has added the new line"""
+        self.text.insert("%d.0" % (row+1), " " * indent)
 
     # This method is taken from http://tkinter.unpythonic.net/wiki/A_Text_Widget_with_Line_Numbers
     def getLineNumbers(self):
@@ -221,7 +234,7 @@ class CodeEditor(ttk.Frame):
             self.text.insert("1.0", value)
         else:
             super().__setitem__(key, value)
-
+            
 
 if __name__ == "__main__":
     root = tk.Tk()
