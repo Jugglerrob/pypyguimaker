@@ -87,19 +87,17 @@ class CodeEditor(ttk.Frame):
     def _newline_indent(self, event=None):
         """called when the user adds a new line. Calculates the correct indent to place"""
         row = int(self.text.index(tk.INSERT).split('.')[0]) # This is the row BEFORE the newline we just made
-        #remove spaces after the cursor
-        line = self.text.get(tk.INSERT, tk.INSERT + " lineend")
-        line = line.rstrip(' ')
-        self.text.delete(tk.INSERT, tk.INSERT + " lineend")
-        self.text.insert(tk.INSERT, line)
         # We don't need to adjust row because tk.Text is 1-based index while our scanner is 0-based index
+        self.text.after(0, lambda: self._newline_indent_add(row))
+
+    def _newline_indent_add(self, row):
+        """is the defered portion of the newline_indent. Called after the text has added the new line"""
         scanner = indent_scanner.IndentScanner(self["text"])
         indent = scanner.get_new_indentation(row)
-        self.text.after(0, lambda: self._newline_indent_add(row, indent))
-
-    def _newline_indent_add(self, row, indent):
-        """is the defered portion of the newline_indent. Called after the text has added the new line"""
         self.text.insert("%d.0" % (row+1), " " * indent)
+        line = self.text.get(tk.INSERT, tk.INSERT + " lineend")
+        if len(line) - len(line.rstrip(' ')) != 0: # The line after the cursor is all whitespace. remove it.
+            self.text.delete(tk.INSERT, tk.INSERT + " lineend")
 
     def _indent(self, event=None):
         """called when the user presses the tab key. Replaces tabs with spaces"""
