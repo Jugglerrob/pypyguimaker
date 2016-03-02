@@ -65,3 +65,6 @@ target/
 # pyenv
 .python-version
 
+# custom ignore list
+output_file.py
+

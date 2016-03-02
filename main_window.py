@@ -94,6 +94,7 @@ def initialize():
 
     filemenu = tk.Menu(root, tearoff=0)
     filemenu.add_command(label="Load...", command=load_prompt)
+    filemenu.add_command(label="Save", command=save)
 
     menubar = tk.Menu(root)
     menubar.add_cascade(label="File", menu=filemenu)
@@ -148,9 +149,9 @@ def create_property_option(panel, options):
 
     elif input_type == "option":
         value = tk.StringVar()
-        value.set("left")
         option = ttk.OptionMenu(frame, value, options[2][0], *options[2])
         option.pack(side=tk.RIGHT, padx=5)
+        value.set("")
 
         option.bind("<FocusOut>", lambda event: save_selectedobj_properties(), add="+")
         value.trace("w", lambda *args: save_selectedobj_properties())
@@ -627,9 +628,31 @@ def load_entry(obj, assignment, method_calls):
     text = ""
     position = GUIObj.Vector(0, 0)
     size = GUIObj.Vector(0, 0)
+    justify = "left"
+    show = ""
+    associated_variable = ""
+    validate = ""
+    validate_command = ""
 
-    if "text" in obj.keywords:
-        text = obj.keywords["text"]
+    for word in obj.keywords:
+        if word == "text":
+            text = obj.keywords["text"]
+        elif word == "justify":
+            justify = obj.keywords["justify"]
+            if justify == "tk.LEFT":
+                justify = "left"
+            elif justify == "tk.RIGHT":
+                justify = "right"
+            elif justify == "tk.CENTER":
+                justify = "center"
+        elif word == "show":
+            show = obj.keywords["show"]
+        elif word == "textvariable":
+            associated_variable = obj.keywords["textvariable"]
+        elif word == "validate":
+            validate = obj.keywords["validate"]
+        elif word == "validatecommand":
+            validate_command = obj.keywords["validatecommand"]
 
     #for assignment in assignments:
     #    if isinstance(assignment, guiparser.SubscriptAssignment):
@@ -652,7 +675,17 @@ def load_entry(obj, assignment, method_calls):
             else:
                 println("Cannot insert text at any place other than 0")
 
-    new_entry = GUIObj.TtkEntryImpl(name=obj.object_name, canvas=parent.widget, position=position, size=size, parent=parent, text=text)
+    new_entry = GUIObj.TtkEntryImpl(name=obj.object_name,
+                                    canvas=parent.widget,
+                                    position=position,
+                                    size=size,
+                                    parent=parent,
+                                    text=text,
+                                    justify=justify,
+                                    show=show,
+                                    associated_variable=associated_variable,
+                                    validate=validate,
+                                    validatecommand=validate_command)
     new_entry.bind_event("selected", on_selection)
     gui_objects.append(new_entry)
 
@@ -690,8 +723,195 @@ def load_checkbutton(obj, assignments, method_calls):
     new_checkbutton.bind_event("selected", on_selection)
     gui_objects.append(new_checkbutton)
             
+
+def save():
+    """called when the user clicks 'save'"""
+    save_gui('output_file.py') # temp test code
+
+
+def save_as():
+    pass
+
+
+def save_gui(filename):
+    src = gui_to_src()
+    with open(filename, 'w') as file:
+        file.write(src)
+        
+
+def gui_to_src():
+    src = ""
+    associated_vars = []
+    mainloop = ""
+    # get the widget creation code
+    for obj in gui_objects:
+        if isinstance(obj, GUIObj.TtkLabelImpl):
+            src += label_to_src(obj)
+        elif isinstance(obj, GUIObj.TtkButtonImpl):
+            src += button_to_src(obj)
+        elif isinstance(obj, GUIObj.TtkEntryImpl):
+            src += entry_to_src(obj, associated_vars)
+        elif isinstance(obj, GUIObj.TtkCheckbuttonImpl):
+            src += checkbutton_to_src(obj, associated_vars)
+        elif isinstance(obj, GUIObj.WindowImpl):
+            root_src, mainloop = root_to_src(obj)
+            src += root_src
+    src += mainloop
+    # indent all the widget code
+    lines = src.splitlines()
+    src = ""
+    for line in lines:
+        src += (" " * 4) + line + "\n"
+    # add user code
+    src = code_editor["text"] + "def initialize():" + src + "initialize()\n"
+    return src
+
+
+def label_to_src(label):
+    """returns a string of the generated src for the label"""
+    name = label.name
+    posx = str(label.position.x)
+    posy = str(label.position.y)
+    sizex = str(label.size.x)
+    sizey = str(label.size.y)
+    text = label.text
+    parent = label.parent.name
+
+    src = """%(name)s = Label(%(parent)s)
+%(name)s["text"] = "%(text)s"
+%(name)s.place(x=%(posx)s, y=%(posy)s, width=%(sizex)s, height=%(sizey)s)\n\n""" % locals()
+    return src
+
+
+def button_to_src(button):
+    """returns a string of the generated src for the button"""
+    name = button.name
+    posx = str(button.position.x)
+    posy = str(button.position.y)
+    sizex = str(button.size.x)
+    sizey = str(button.size.y)
+    text = button.text
+    parent = button.parent.name
+    command = button.command
+
+    src = ""
+    if command:
+        src += "%(name)s = Button(%(parent)s, command=%(command)s)\n" % locals()
+    else:
+        src += "%(name)s = Button(%(parent)s)\n" % locals()
+    src += '%(name)s["text"] = "%(text)s"\n' % locals()
+    src += '%(name)s.place(x=%(posx)s, y=%(posy)s, width=%(sizex)s, height=%(sizey)s)\n\n' % locals()
+    return src
+
+
+def entry_to_src(entry, associated_vars):
+    """
+    returns a string of the generated src for the entry.
+    associated_vars is a list of already generated associated variables
+    """
+    name = entry.name
+    posx = str(entry.position.x)
+    posy = str(entry.position.y)
+    sizex = str(entry.size.x)
+    sizey = str(entry.size.y)
+    text = entry.text
+    parent = entry.parent.name
+    justify = entry.justify
+    show = entry.show
+    associated_variable = entry.associated_variable
+    validate = entry.validate
+    validate_command = entry.validate_command
+    src = ""
+
+    if associated_variable and associated_variable not in associated_vars:
+        src += "%(associated_variable)s = StringVar()\n\n" % locals()
+        associated_vars.append(associated_variable)
+    src += """%(name)s = Entry(%(parent)s)
+%(name)s["text"] = "%(text)s"\n""" % locals()
+    if associated_variable:
+        src += '%(name)s["textvariable"] = %(associated_variable)s\n' % locals()
+    if justify:
+        src += '%(name)s["justify"] = "%(justify)s"\n' % locals()
+    if show:
+        src += '%(name)s["show"] = "%(show)s"\n' % locals()
+    if validate:
+        src += '%(name)s["validate"] = "%(validate)s"\n' % locals()
+    if validate_command:
+        src += '%(name)s["validatecommand"] = %(validate_command)s\n' % locals()
+    src += "%(name)s.place(x=%(posx)s, y=%(posy)s, width=%(sizex)s, height=%(sizey)s)\n\n" % locals()
+    return src
+
+
+def checkbutton_to_src(checkbutton, associated_vars):
+    """
+    returns the string of the generated src for the entry.
+    associated_vars in a list of already generated associated variables
+    """
+    name = checkbutton.name
+    posx = str(checkbutton.position.x)
+    posy = str(checkbutton.position.y)
+    sizex = str(checkbutton.size.x)
+    sizey = str(checkbutton.size.y)
+    text = checkbutton.text
+    parent = checkbutton.parent.name
+    command = checkbutton.command
+    offvalue = checkbutton.offvalue
+    onvalue = checkbutton.onvalue
+    takefocus = checkbutton.takefocus
+    variable = checkbutton.variable
+    isnumeric = onvalue.isnumeric() and offvalue.isnumeric() # to know if we should use StringVar or IntVar
+    src = ""
     
-    
+    if variable and variable not in associated_vars:
+        if isnumeric:
+            src += "%(variable)s = IntVar()\n" % locals()
+        else:
+            src += "%(variable)s = StringVar()\n" % locals()
+        associated_vars.append(variable)
+    if command:
+        src += '%(name)s = Checkbutton(%(parent)s, command=%(command)s)\n' % locals()
+    else:
+        src += '%(name)s = Checkbutton(%(parent)s)\n' % locals()        
+    src += '%(name)s["text"] = "%(text)s"\n' % locals()
+    if variable:
+        src += '%(name)s["variable"] = %(variable)s\n' % locals()
+    if onvalue:
+        if isnumeric:
+            src += '%(name)s["onvalue"] = %(onvalue)s\n' % locals()
+        else:
+            src += '%(name)s["onvalue"] = "%(onvalue)s"\n' % locals()
+    if offvalue:
+        if isnumeric:
+            src += '%(name)s["offvalue"] = %(offvalue)s\n' % locals()
+        else:
+            src += '%(name)s["offvalue"] = "%(offvalue)s"\n' % locals()
+    if takefocus:
+        src += '%(name)s["takefocus"] = %(takefocus)s\n' % locals()
+    src += "%(name)s.place(x=%(posx)s, y=%(posy)s, width=%(sizex)s, height=%(sizey)s)\n\n" % locals()
+    return src
+
+
+def root_to_src(_root):
+    """
+    returns a tuple
+    tuple[0] is src to create window
+    tuple[1] is src to start mainloop
+    the mainloop src should be added after all other widgets are added to src
+    """
+    name = _root.name
+    title = _root.title
+    sizex = str(_root.size.x)
+    sizey = str(_root.size.y)
+    geometry = sizex + "x" + sizey
+
+    src = """
+%(name)s = Tk()
+%(name)s.title("%(title)s")
+%(name)s.geometry("%(geometry)s")\n\n""" % locals()
+    mainloop = "%(name)s.mainloop()" % locals()
+    return src, mainloop
+
+            
 initialize()
 
         

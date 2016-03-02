@@ -437,7 +437,7 @@ class TtkButtonImpl(Button, TkSizableWidgetImpl, TkMovableWidgetImpl):
     def text(self, value):
         self._text = value
         self.widget["text"] = self._text
-
+        
 
 class TtkLabelImpl(Label, TkSizableWidgetImpl, TkMovableWidgetImpl):
     def __init__(self, canvas=None, text="", **kwargs):
