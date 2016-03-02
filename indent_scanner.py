@@ -26,14 +26,13 @@ class IndentScanner:
             else:
                 break
         line = self.get_line(i)
-        if match_open_string(" ".join(self.lines[0:i+1])):
+        if match_open_string("\n".join(self.lines[0:i+1])):
             # if the string is open then we let the indent level be 0
             return 0
         # We have to keep looking backwards for the last line that was not the end of a string
         # This can be done by removing the last line and checking if there is now an open string
         while i > 1:
-            if match_open_string(" ".join(self.lines[0:i])):
-                print("o")
+            if match_open_string("\n".join(self.lines[0:i])):
                 i -= 1
             else:
                 break
@@ -125,8 +124,18 @@ def match_open_string(text):
                 elif char == '\\':
                     state = "OPENING_ESCAPED_CHAR"
                     continue
+                elif char == '#':
+                    state = "COMMENT"
+                    continue
                 else:
                     state = "ENTER"
+                    continue
+            elif state == "COMMENT":
+                if char == '\n':
+                    state = "ENTER"
+                    continue
+                else:
+                    state = "COMMENT"
                     continue
             elif state == "FIRST_OPEN_QUOTE":
                 if char == quote:
@@ -144,6 +153,9 @@ def match_open_string(text):
                     continue
                 if char == '\\':
                     state = "OPENING_ESCAPED_CHAR"
+                    continue
+                if char == '#':
+                    state = "COMMENT"
                     continue
                 else:
                     state = "ENTER"
@@ -176,7 +188,7 @@ def match_open_string(text):
                     continue
             elif state == "SECOND_ENDING_QUOTE":
                 if char == quote:
-                    state = "FIRST OPEN QUOTE"
+                    state = "ENTER"
                     continue
                 if char == '\\':
                     state = "INNER_QUOTE_ESCAPED_CHAR"
