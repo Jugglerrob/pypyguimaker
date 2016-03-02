@@ -827,7 +827,7 @@ def entry_to_src(entry, associated_vars):
         src += "%(associated_variable)s = StringVar()\n\n" % locals()
         associated_vars.append(associated_variable)
     src += """%(name)s = Entry(%(parent)s)
-%(name)s["text"] = "%(text)s"\n""" % locals()
+%(name)s.insert(0, "%(text)s")\n""" % locals()
     if associated_variable:
         src += '%(name)s["textvariable"] = %(associated_variable)s\n' % locals()
     if justify:
