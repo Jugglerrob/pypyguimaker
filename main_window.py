@@ -70,8 +70,8 @@ def initialize():
     # This specifies what properties to place in the properties panel
     #((Property name, property type, (objects to display for), (options))
     properties=(("Name", "entry"),
-                ("Y Position", "entry"),
                 ("X Position", "entry"),
+                ("Y Position", "entry"),
                 ("Width", "entry"),
                 ("Height", "entry"),
                 ("Text", "entry"),
