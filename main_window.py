@@ -6,6 +6,7 @@ import tkinter.font as fonts
 import tkinter.filedialog
 import colors
 import code_editor as editor
+import styles
 
 gui_objects = [] # all gui objs in the designer
 selected_object = None # The currently selected gui obj
@@ -25,15 +26,10 @@ def initialize():
     height = 800
     root.geometry("%dx%d" % (width, height))
     root.state("zoomed") # sets to maximized. Supposably only works on windows and some linux machines
+
+    styles.initialize()
     
     bold = fonts.Font(weight="bold", size=10)
-
-    style = ttk.Style()
-    style.configure('TFrame', background=colors.white_primary)
-    style.configure('BackgroundFrame.TFrame', background=colors.background)
-    style.configure('LightBluePrimaryNavLabel.TLabel', foreground=colors.background, background=colors.lightblue_primary)
-    style.configure('WhiteDisabledNavLabel.TLabel', background=colors.white_disabled)
-    style.configure('LightBluePrimaryFrame.TFrame', background=colors.lightblue_primary)
 
     root_frame = ttk.Frame(root, style='BackgroundFrame.TFrame') # The root frame is just a giant frame used to add extra padding between the window border and elements
     root_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
