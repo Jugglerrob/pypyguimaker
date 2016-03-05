@@ -136,7 +136,10 @@ class TkWidgetImpl(Widget):
         self.window = tk.Canvas()  # the window is a canvas that contains everything related to the widget
         # create the selection outline
         # We use a blue frame and make it 4 pixels wider than the window canvas
-        self.__outline_id = self.window.create_window(-2, -2, window=tk.Frame(bg=colors.lightblue_primary),
+        self.outline = tk.Frame(bg=colors.lightblue_primary)
+        self.__outline_id = self.window.create_window(-2,
+                                                      -2,
+                                                      window=self.outline,
                                                       anchor=tk.NW,
                                                       width=0,
                                                       height=0,
@@ -149,6 +152,7 @@ class TkWidgetImpl(Widget):
         self.view_id = self.canvas.create_window(0, 0, window=self.window, anchor=tk.NW)
         self._selected = False
         # bind the widget and move it to the front
+        self.outline.bind("<Button-1>", self.__select, add="+")
         self.widget.bind("<Button-1>", self.__select, add="+")
         self.widget.lift()
         # bind the configure method
@@ -202,6 +206,8 @@ class TkMovableWidgetImpl(MovableWidget, TkWidgetImpl):
 
         self.widget.bind("<B1-Motion>", self.__drag, add="+")
         self.widget.bind("<Button-1>", self.__click, add="+")
+        self.outline.bind("<B1-Motion>", self.__drag, add="+")
+        self.outline.bind("<Button-1>", self.__click, add="+")
         self.bind_event("resized", self.__recalc_maxpos)
         self.parent.bind_event("resized", self.__recalc_maxpos)
 
