@@ -12,6 +12,7 @@ selected_object = None # The currently selected gui obj
 property_entries = {} # A dict of available property entries {k:name v:(containing panel, entry/associated var)}
 root = None # The tk root window
 main_canvas = None # The main canvas to put new gui objs on
+current_filename = None
 
 
 def initialize():
@@ -95,6 +96,7 @@ def initialize():
     filemenu = tk.Menu(root, tearoff=0)
     filemenu.add_command(label="Load...", command=load_prompt)
     filemenu.add_command(label="Save", command=save)
+    filemenu.add_command(label="Save As", command=save_as)
 
     menubar = tk.Menu(root)
     menubar.add_cascade(label="File", menu=filemenu)
@@ -726,11 +728,22 @@ def load_checkbutton(obj, assignments, method_calls):
 
 def save():
     """called when the user clicks 'save'"""
-    save_gui('output_file.py') # temp test code
+    if current_filename is not None:
+        save_gui(current_filename)
+    else:
+        save_as()
 
 
 def save_as():
-    pass
+    """called when the user clicks 'save as'"""
+    global current_filename
+    try:
+        filename = tk.filedialog.asksaveasfilename(defaultextension='.py',
+                                                   filetypes=[('python files', '.py'), ('all files', '.*')])
+        save_gui(filename) # temp test code
+        current_filename = filename        
+    except:
+        pass # this will be called when the user exits or cancels the file dialog
 
 
 def save_gui(filename):
