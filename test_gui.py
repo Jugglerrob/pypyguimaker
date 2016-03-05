@@ -8,7 +8,7 @@ def initialize():
     root.geometry('500x500')
     root.title('Python application')
 
-    randName959606 = Button(root, command=lambda:bar())
+    randName959606 = Button(root, command=bar())
     randName959606['text'] = 'DEFAULT'
     randName959606.place(x=50, y=50, width=100, height=200)
 
