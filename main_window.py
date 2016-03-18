@@ -94,8 +94,12 @@ def initialize():
     filemenu.add_command(label="Save", command=save)
     filemenu.add_command(label="Save As", command=save_as)
 
+    codemenu = tk.Menu(root, tearoff=0)
+    codemenu.add_command(label="Generate Helper Functions", command=generate_helpers)
+
     menubar = tk.Menu(root)
     menubar.add_cascade(label="File", menu=filemenu)
+    menubar.add_cascade(label="Code", menu=codemenu)
     root.config(menu=menubar)
     
     load("test_gui.py")
@@ -921,6 +925,141 @@ def root_to_src(_root):
 %(name)s.geometry("%(geometry)s")\n\n""" % locals()
     mainloop = "%(name)s.mainloop()" % locals()
     return src, mainloop
+
+
+def generate_helpers():
+    helpers = """
+### Common Helper Functions ###
+
+def settext(widget, newtext):
+    '''
+        This is how you change text in a widget.  What it does varies depending on the widget.
+        Always give a string as the second parameter, even if you want to just put a number in it.
+    '''
+    if type(widget).__name__ == 'ScrolledList':               # have to do this because ScrolledList may not have been included
+        widget.listbox.delete(0,END)
+        if type(newtext) == list:
+            for string in newtext:
+                widget.listbox.insert(END,string)
+        elif type(newtext) == str:
+            for string in newtext.split('\\n'):
+                 widget.listbox.insert(END,string)
+
+    elif type(widget).__name__ == 'ScrolledText':               # have to do this because ScrolledText may not have been included
+        widget.text.delete('1.0', END)
+        widget.text.insert('1.0', newtext)
+        widget.text.mark_set(INSERT, '1.0')
+
+    elif type(widget) == Text:
+        widget.delete('1.0', END)
+        widget.insert('1.0', newtext)
+
+    elif type(widget) == Entry:
+        widget.delete(0,END)
+        widget.insert(0,newtext)
+
+    elif type(widget) == Label:
+        widget['text'] = newtext
+
+    elif type(widget) == Button:
+        widget.config(text=newtext)
+
+    elif type(widget) == Checkbutton:
+        widget.config(text=newtext)
+
+    elif type(widget) == Scale:
+        widget['label'] = newtext
+
+    elif type(widget) == Listbox:
+        widget.delete(0,END)
+        if type(newtext) == list:
+            for string in newtext:
+                widget.insert(END,string)
+        elif type(newtext) == str:
+            for string in newtext.split('\\n'):
+                widget.insert(END,string)
+
+    elif type(widget) == Menubutton:
+        widget['text'] = newtext
+
+def gettext(widget):
+    '''
+        This gets the contents of a widget and returns a string.  If it is a label, it just returns the label text.
+        If it is a button, it returns the text on the face of the button.  If it is a list or checkbox, it returns the
+        string that is currently selected.
+    '''
+    if type(widget).__name__ == 'ScrolledList':
+        return list(widget.listbox.get(0,END))
+
+    elif type(widget).__name__ == 'ScrolledText':
+        return widget.text.get('1.0', END+'-1c')
+
+    elif type(widget) == Text:
+        return widget.get('1.0', END+'-1c')
+
+    elif type(widget) == Entry:
+        return widget.get()
+
+    elif type(widget) == Label:
+        return widget.cget('text')
+
+    elif type(widget) == Button:
+        return widget['text']
+
+    elif type(widget) == Checkbutton:
+        return widget.cget('text')
+
+    elif type(widget) == Scale:
+        return widget['label']
+
+    elif type(widget) == Listbox:
+        return list(widget.get(0,END))
+
+    elif type(widget) == Menubutton:
+        return widget['text']
+
+def appendtext(widget, newtext):
+    '''
+        This sets the text by first getting the current text and appending to the end.
+        It does not automatically insert a newline or any spaces.  You should do that yourself, if desired.
+    '''
+    current_text = gettext(widget)
+    settext(widget, current_text + newtext)
+
+def popup(msg):
+    '''
+        Use this to display a quick message to the user.  Just give it a string.
+    '''
+    box.showinfo('msg', msg)
+
+def askforstring(prompt):
+    '''
+        Use this to get a string from the user.  The prompt is what is displayed on the dialog box.
+    '''
+    return simpledialog.askstring('request for input', prompt)
+
+def askforyesno(prompt):
+    '''
+        Use this to get a String response from the user.  It is either yes or no.
+        Notice, the type of the returned object is str, not boolean!
+        The prompt is what is displayed on the dialog box.
+    '''
+    return box.askquestion('request for yes/no', prompt)
+
+def getselected(somelistbox):
+    '''
+        Use this to get the currently selected text from a listbox.
+    '''
+    if type(somelistbox) == Listbox:
+        try:
+            return somelistbox.get(somelistbox.curselection()[0])
+        except:
+            return ''
+    else:
+        return somelistbox.getselected()
+        
+"""
+    code_editor["text"] = code_editor["text"] + helpers
 
             
 initialize()
