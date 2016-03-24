@@ -34,6 +34,27 @@ def initialize():
     root_frame = ttk.Frame(root, style='BackgroundFrame.TFrame') # The root frame is just a giant frame used to add extra padding between the window border and elements
     root_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
 
+    left_frame_border = ttk.Frame(root_frame, style='WhiteSecondaryFrame.TFrame')
+    left_frame_border.pack(padx=10, pady=10, side=tk.LEFT, fill=tk.Y)
+    left_frame = ttk.Frame(left_frame_border)
+    left_frame.pack(side=tk.LEFT, padx=2, pady=2, fill=tk.Y)
+    widgets_title_frame = ttk.Frame(left_frame, style='LightBluePrimaryFrame.TFrame')
+    widgets_title_frame.pack(fill=tk.X)
+    widgets_title_label = ttk.Label(widgets_title_frame, text='Widgets', style='LightBluePrimaryNavLabel.TLabel')
+    widgets_title_label.pack(fill=tk.X, padx=5)
+    widget_frame = ttk.Frame(left_frame, width=150, height=800)
+    widget_frame.pack(fill=tk.Y)
+    widget_frame.pack_propagate(0)
+
+    widgets=(("Button", GUIObj.TtkButtonImpl),
+            ("Label", GUIObj.TtkLabelImpl),
+            ("Checkbutton", GUIObj.TtkCheckbuttonImpl),
+            ("Entry", GUIObj.TtkEntryImpl)
+            )
+
+    for widget in widgets:
+        create_widget_entry(widget_frame, widget[0], widget[1])
+
     main_frame_border = ttk.Frame(root_frame, style='WhiteSecondaryFrame.TFrame')
     main_frame_border.pack(padx=10, pady=10, side=tk.LEFT, fill=tk.BOTH, expand=True)
     main_frame = ttk.Frame(main_frame_border, style='LightBluePrimaryFrame.TFrame')
@@ -120,6 +141,100 @@ def show_designer(event=None):
     main_canvas.pack(fill=tk.BOTH, expand=True)
     designer_title.configure(style='LightBluePrimaryNavLabel.TLabel')
     code_title.configure(style='WhiteDisabledNavLabel.TLabel')
+
+
+def create_widget_entry(frame, name, widget_type):
+    """
+    creates an 'entry' in the given panel for the given widget. This entry allows the user to drag an drop a widget onto a canvas
+    """
+    widget_frame = ttk.Frame(frame)
+    widget_frame.pack(side=tk.TOP, fill=tk.X)
+    widget_label = ttk.Label(widget_frame, text=name)
+    widget_label.pack(side=tk.TOP, padx=5, fill=tk.X)
+    widget_label.bind('<Enter>', lambda event: enter_widget_entry(widget_frame, widget_label))
+    widget_label.bind('<Leave>', lambda event: leave_widget_entry(widget_frame, widget_label))
+    widget_label.bind('<Button-1>', click_new_widget)
+    widget_label.bind('<B1-Motion>', drag_new_widget)
+    widget_label.bind('<ButtonRelease-1>', lambda event: drop_new_widget(event, widget_type))
+
+
+def enter_widget_entry(frame, label):
+    """
+    called when the user mouses over a widget entry.
+    highlights the entry
+    """
+    frame.configure(style='LightBluePrimaryFrame.TFrame')
+    label.configure(style='LightBluePrimaryLabel.TLabel')
+
+
+def get_root_position(widget, x, y):
+    """gets the position relative to the root widget"""
+    while widget.master is not None:
+        x += widget.winfo_x()
+        y += widget.winfo_y()
+        widget = widget.master
+    x += widget.winfo_x()
+    y += widget.winfo_y()
+    return x,y
+
+
+def leave_widget_entry(frame, label):
+    """
+    called when the user mouses out over a widget entry.
+    un-highlights the entry
+    """
+    frame.configure(style='TFrame')
+    label.configure(style='TLabel')
+    
+
+def click_new_widget(event):
+    """
+    called when the user clicks a widget entry
+    sets up the program to drag a new widget
+    """
+    global new_widget_canvas, canvasx, canvasy, canvaswidth, canvasheight, incanvas
+    new_widget_canvas = tk.Canvas(root, highlightthickness=0)
+    new_widget_canvas.create_rectangle(0, 0, 9, 9, outline=colors.darkblue_primary, fill=colors.background)
+    new_widget_canvas.create_line(0, 0, 9, 9)
+    new_widget_canvas.create_line(0, 9, 9, 0)
+    rootx, rooty=get_root_position(event.widget, event.x, event.y)
+    new_widget_canvas.place(x=rootx, y=rooty, width=10, height=10)
+
+    # These are used later to determine if the are inside the main canvas
+    canvasx, canvasy = get_root_position(main_canvas, main_canvas.winfo_x(), main_canvas.winfo_y())
+    canvaswidth = main_canvas.winfo_width()
+    canvasheight = main_canvas.winfo_height()
+    incanvas = False
+
+
+def drag_new_widget(event):
+    """called when the user is dragging a new widget across the screen"""
+    global incanvas
+    rootx, rooty=get_root_position(event.widget, event.x, event.y)
+    if canvasx <= rootx <= canvaswidth + canvasheight and canvasy <= rooty <= canvasy + canvasheight:
+        if not incanvas:
+            new_widget_canvas.create_rectangle(0, 0, 9, 9, outline=colors.darkblue_primary, fill=colors.background)
+            incanvas = True
+    elif incanvas:
+        new_widget_canvas.create_line(0, 0, 9, 9)
+        new_widget_canvas.create_line(0, 9, 9, 0)
+        incanvas = False
+    new_widget_canvas.place(x=rootx, y=rooty)
+
+
+def drop_new_widget(event, widget_type):
+    """
+    called when the user stops dragging a new widget
+    actually creates a new widget
+    """
+    new_widget_canvas.place_forget()
+    if incanvas:
+        rootx, rooty=get_root_position(event.widget, event.x, event.y)
+        root_widget = get_guiobj("root")
+        x = rootx - canvasx
+        y = rooty - canvasy
+        position = GUIObj.Vector(x, y)
+        new_widget = widget_type(parent=root_widget, canvas=root_widget.widget, position=position)
 
 
 def create_property_option(panel, options):

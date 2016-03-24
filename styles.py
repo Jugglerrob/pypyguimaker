@@ -15,11 +15,13 @@ def initialize():
 
     style.configure('TFrame', background=colors.white_primary)
     style.configure('BackgroundFrame.TFrame', background=colors.background)
-    style.configure('LightBluePrimaryNavLabel.TLabel', foreground=colors.background, background=colors.lightblue_primary)
     style.configure('WhiteDisabledNavLabel.TLabel', background=colors.white_disabled)
     style.configure('LightBluePrimaryFrame.TFrame', background=colors.lightblue_primary)
     style.configure('WhiteSecondaryFrame.TFrame', background=colors.white_secondary)
     style.configure('WhitePrimaryFrame.TFrame', background=colors.white_primary)
+
+    style.configure('LightBluePrimaryNavLabel.TLabel', foreground=colors.background, background=colors.lightblue_primary)
+    style.configure('LightBluePrimaryLabel.TLabel', foreground=colors.background, background=colors.lightblue_primary)
     
     style.element_create("plain.field", "from", "clam")
     style.layout("EntryStyle.TEntry",
