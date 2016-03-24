@@ -50,6 +50,7 @@ class CodeEditor(ttk.Frame):
                                      background = colors.white_primary,
                                      foreground = colors.lightblue_primary,
                                      state='disabled')
+        self.linenums_text.bind("<Button-1>", lambda event: "break") # prevents highlighting
         self.linenums_text.grid(row=0, column=0, padx=4, sticky="NS")
         self.text = tk.Text(self,
                             undo=True,
@@ -63,17 +64,27 @@ class CodeEditor(ttk.Frame):
         self.text.bind("<Key-Tab>", self._indent)
         self.text.bind("<<Paste>>", lambda event: self.text.after(0, self.replace_indents))
         self.text.bind("<<PasteSelection>>", lambda event: self.text.after(0, self.replace_indents))
-        vert_scrollbar = ttk.Scrollbar(self)
-        vert_scrollbar.grid(row=0, column=2, sticky="NS")
+        self.vert_scrollbar = ttk.Scrollbar(self)
+        self.vert_scrollbar.grid(row=0, column=2, sticky="NS")
         horz_scrollbar = ttk.Scrollbar(self, orient=tk.HORIZONTAL)
         horz_scrollbar.grid(row=1, column=1, sticky="WE")
-        self.text.config(yscrollcommand=vert_scrollbar.set)
+        self.text.config(yscrollcommand=self._textscrollupdate)
         self.text.config(xscrollcommand=horz_scrollbar.set)
-        vert_scrollbar.config(command=self.text.yview)
+        self.vert_scrollbar.config(command=self._vertscroll)
         horz_scrollbar.config(command=self.text.xview)
         tk.Grid.columnconfigure(self, 1, weight=1)
         tk.Grid.rowconfigure(self, 0, weight=1)
         self.LoadTagDefs()
+
+    def _textscrollupdate(self, first, last):
+        """called when the user moves the cursur inside text"""
+        self.vert_scrollbar.set(first, last)
+        self.linenums_text.yview_moveto(first)
+
+    def _vertscroll(self, *args):
+        """called when the user moves the vertical scrollbar"""
+        self.linenums_text.yview(*args)
+        self.text.yview(*args) 
 
     def _modified(self, event=None):
         """Called when the text area is modified. Redraws lines numers and and recolorizes"""
@@ -110,35 +121,8 @@ class CodeEditor(ttk.Frame):
         text = text.replace("\t", " " * 4)
         self["text"] = text
 
-    # This method is taken from http://tkinter.unpythonic.net/wiki/A_Text_Widget_with_Line_Numbers
     def getLineNumbers(self):
-        x = 0
-        line = '0'
-        col= ''
-        ln = ''
-        
-        # assume each line is at least 6 pixels high
-        step = 6
-        
-        nl = '\n'
-        lineMask = '    %s\n'
-        indexMask = '@0,%d'
-
-        self.update_idletasks() # required to make sure the height is correct
-        
-        for i in range(0, self.text.winfo_height(), step):
-            
-            ll, cc = self.text.index( indexMask % i).split('.')
-
-            if line == ll:
-                if col != cc:
-                    col = cc
-                    ln += nl
-            else:
-                line, col = ll, cc
-                ln += (lineMask % line)[-5:]
-
-        return ln
+        return "\n".join(map(str, range(len(self["text"].splitlines()))))
 
     # This method is taken from http://tkinter.unpythonic.net/wiki/A_Text_Widget_with_Line_Numbers
     def updateLineNumbers(self):
