@@ -18,6 +18,8 @@ def initialize():
     style.configure('LightBluePrimaryNavLabel.TLabel', foreground=colors.background, background=colors.lightblue_primary)
     style.configure('WhiteDisabledNavLabel.TLabel', background=colors.white_disabled)
     style.configure('LightBluePrimaryFrame.TFrame', background=colors.lightblue_primary)
+    style.configure('WhiteSecondaryFrame.TFrame', background=colors.white_secondary)
+    style.configure('WhitePrimaryFrame.TFrame', background=colors.white_primary)
     
     style.element_create("plain.field", "from", "clam")
     style.layout("EntryStyle.TEntry",
