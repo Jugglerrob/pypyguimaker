@@ -388,7 +388,7 @@ class Frame(Container, MovableWidget, SizableWidget):
 
 
 class Button(TextContainer, MovableWidget, SizableWidget):
-    def __init__(self, command=None, **kwargs):
+    def __init__(self, command="", **kwargs):
         """
         @type canvas: tk.Canvas
         """
@@ -402,8 +402,8 @@ class Label(TextContainer, MovableWidget, SizableWidget):
 
 
 class Checkbutton(Label):
-    def __init__(self, command="", offvalue="", onvalue="", takefocus=True, variable="", **kwargs):
-        super().__init__(command=command, offvalue=offvalue, onvalue=onvalue, takefocus=takefocus, variable=variable, **kwargs)
+    def __init__(self, command="", offvalue="", onvalue="", takefocus=True, variable="", size=Vector(90, 20), text="Checkbutton", **kwargs):
+        super().__init__(command=command, offvalue=offvalue, onvalue=onvalue, takefocus=takefocus, variable=variable, size=size, text=text, **kwargs)
         self.command = command
         self.offvalue = offvalue
         self.onvalue = onvalue
@@ -412,8 +412,8 @@ class Checkbutton(Label):
 
 
 class Entry(TextContainer, MovableWidget, SizableWidget):
-    def __init__(self, justify="left", show="", validate="", validate_command="", associated_variable="", **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, justify="left", show="", validate="", validate_command="", associated_variable="", size=Vector(90, 20), **kwargs):
+        super().__init__(size=size, **kwargs)
         self.justify = justify
         self.show = show # indicates what character to replace with for password fields
         self.associated_variable = associated_variable
@@ -422,7 +422,7 @@ class Entry(TextContainer, MovableWidget, SizableWidget):
         
 
 class TtkButtonImpl(Button, TkSizableWidgetImpl, TkMovableWidgetImpl):
-    def __init__(self, canvas=None, text="", **kwargs):
+    def __init__(self, canvas=None, text="Button", size=Vector(50, 40), **kwargs):
         """
         @type canvas: tk.Canvas
         """
@@ -430,7 +430,7 @@ class TtkButtonImpl(Button, TkSizableWidgetImpl, TkMovableWidgetImpl):
         
         new_button = ttk.Label(canvas.winfo_toplevel(), style="TButton")
 
-        super().__init__(widget=new_button, text=text, canvas=canvas, **kwargs)
+        super().__init__(widget=new_button, text=text, size=size, canvas=canvas, **kwargs)
 
     @property
     def text(self):
@@ -446,9 +446,9 @@ class TtkButtonImpl(Button, TkSizableWidgetImpl, TkMovableWidgetImpl):
         
 
 class TtkLabelImpl(Label, TkSizableWidgetImpl, TkMovableWidgetImpl):
-    def __init__(self, canvas=None, text="", **kwargs):
+    def __init__(self, canvas=None, text="Label", size=Vector(35, 20), **kwargs):
         new_label = ttk.Label(canvas.winfo_toplevel(), style="TLabel")
-        super().__init__(widget=new_label, canvas=canvas, **kwargs)
+        super().__init__(widget=new_label, canvas=canvas, size=size, **kwargs)
         self.text = text
 
     @property
@@ -518,7 +518,7 @@ class TtkEntryImpl(TkSizableWidgetImpl, TkMovableWidgetImpl, Entry):
 
 
 class TtkCheckbuttonImpl(TkSizableWidgetImpl, TkMovableWidgetImpl, Checkbutton):
-    def __init__(self, canvas=None, text="", **kwargs):
+    def __init__(self, canvas=None, text="Checkbutton", **kwargs):
         self.intvar = tk.IntVar()
         self.intvar.set(0)
         new_checkbutton = ttk.Checkbutton(canvas.winfo_toplevel(), style="CheckbuttonStyle.Checkbutton", variable=self.intvar, offvalue=0, onvalue=0)

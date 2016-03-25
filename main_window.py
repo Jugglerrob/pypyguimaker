@@ -17,7 +17,7 @@ current_filename = None
 
 
 def initialize():
-    global root, main_canvas, property_entries, property_frame, designer_title, code_title, code_editor
+    global root, main_canvas, property_entries, property_frame, designer_title, code_title, code_editor, widget_counts
 
     root = tk.Tk()
     root.configure(background=colors.background)
@@ -45,14 +45,18 @@ def initialize():
     widget_frame = ttk.Frame(left_frame, width=150, height=800)
     widget_frame.pack(fill=tk.Y)
     widget_frame.pack_propagate(0)
-
+ 
     widgets=(("Button", GUIObj.TtkButtonImpl),
             ("Label", GUIObj.TtkLabelImpl),
             ("Checkbutton", GUIObj.TtkCheckbuttonImpl),
             ("Entry", GUIObj.TtkEntryImpl)
             )
 
+    # How many widgets have been created. Useful for naming
+    widget_counts = {}
+
     for widget in widgets:
+        widget_counts[widget[0]] = 0
         create_widget_entry(widget_frame, widget[0], widget[1])
 
     main_frame_border = ttk.Frame(root_frame, style='WhiteSecondaryFrame.TFrame')
@@ -155,7 +159,7 @@ def create_widget_entry(frame, name, widget_type):
     widget_label.bind('<Leave>', lambda event: leave_widget_entry(widget_frame, widget_label))
     widget_label.bind('<Button-1>', click_new_widget)
     widget_label.bind('<B1-Motion>', drag_new_widget)
-    widget_label.bind('<ButtonRelease-1>', lambda event: drop_new_widget(event, widget_type))
+    widget_label.bind('<ButtonRelease-1>', lambda event: drop_new_widget(event, name, widget_type))
 
 
 def enter_widget_entry(frame, label):
@@ -222,19 +226,26 @@ def drag_new_widget(event):
     new_widget_canvas.place(x=rootx, y=rooty)
 
 
-def drop_new_widget(event, widget_type):
+def drop_new_widget(event, widget_name, widget_type):
     """
     called when the user stops dragging a new widget
     actually creates a new widget
     """
     new_widget_canvas.place_forget()
     if incanvas:
+        widget_counts[widget_name] += 1
+        name = widget_name + str(widget_counts[widget_name])
+        while get_guiobj(name) is not None:
+            widget_counts[widget_name] += 1
+            name = widget_name + str(widget_counts[widget_name])
         rootx, rooty=get_root_position(event.widget, event.x, event.y)
         root_widget = get_guiobj("root")
         x = rootx - canvasx
         y = rooty - canvasy
         position = GUIObj.Vector(x, y)
-        new_widget = widget_type(parent=root_widget, canvas=root_widget.widget, position=position)
+        new_widget = widget_type(parent=root_widget, name=name, canvas=root_widget.widget, position=position)
+        new_widget.bind_event("selected", on_selection)
+        gui_objects.append(new_widget)
 
 
 def create_property_option(panel, options):
