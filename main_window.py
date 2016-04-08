@@ -137,7 +137,8 @@ def initialize():
 
 def delete_selected():
     """deletes all currently selected guiobjs"""
-    for obj in selected_objects:
+    for i in range (len(selected_objects), 0, -1):
+        obj = selected_objects[i-1]
         delete(obj)
 
 
