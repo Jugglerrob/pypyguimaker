@@ -15,7 +15,6 @@ root = None # The tk root window
 main_canvas = None # The main canvas to put new gui objs on
 current_filename = None
 
-
 def initialize():
     global root, main_canvas, property_entries, property_frame, designer_title, code_title, code_editor, widget_counts
 
@@ -205,9 +204,10 @@ def click_new_widget(event):
     new_widget_canvas.place(x=rootx, y=rooty, width=10, height=10)
 
     # These are used later to determine if the are inside the main canvas
-    canvasx, canvasy = get_root_position(main_canvas, main_canvas.winfo_x(), main_canvas.winfo_y())
-    canvaswidth = main_canvas.winfo_width()
-    canvasheight = main_canvas.winfo_height()
+    root_GUIObj = get_guiobj("root").widget # this is the canvas of the root guiobj
+    canvasx, canvasy = get_root_position(root_GUIObj, root_GUIObj.winfo_x(), root_GUIObj.winfo_y())
+    canvaswidth = root_GUIObj.winfo_width()
+    canvasheight = root_GUIObj.winfo_height()
     incanvas = False
 
 
@@ -215,7 +215,7 @@ def drag_new_widget(event):
     """called when the user is dragging a new widget across the screen"""
     global incanvas
     rootx, rooty=get_root_position(event.widget, event.x, event.y)
-    if canvasx <= rootx <= canvaswidth + canvasheight and canvasy <= rooty <= canvasy + canvasheight:
+    if canvasx <= rootx <= canvaswidth + canvasx and canvasy <= rooty <= canvasy + canvasheight:
         if not incanvas:
             new_widget_canvas.create_rectangle(0, 0, 9, 9, outline=colors.darkblue_primary, fill=colors.background)
             incanvas = True
