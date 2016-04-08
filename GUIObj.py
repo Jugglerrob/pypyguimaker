@@ -8,6 +8,11 @@ class Event:
     def __init__(self, caller):
         self.caller = caller
 
+class SelectEvent:
+    def __init__(self, caller, multiselect):
+        self.caller = caller
+        self.multiselect = multiselect
+
 
 class Vector:
     """Represents a position in 2d space"""
@@ -18,6 +23,10 @@ class Vector:
 
     def __str__(self):
         return "Vector: %f, %f" % (self.x, self.y)
+
+
+    def __add__(self, other):
+       return Vector(self.x + other.x, self.y + other.y)
 
 
 class Sized:
@@ -154,6 +163,7 @@ class TkWidgetImpl(Widget):
         # bind the widget and move it to the front
         self.outline.bind("<Button-1>", self.__select, add="+")
         self.widget.bind("<Button-1>", self.__select, add="+")
+        self.widget.bind("<Control-1>", self.__multiselect, add="+")
         self.widget.lift()
         # bind the configure method
         self.window.bind("<Configure>", self.__configure, add="+")
@@ -170,6 +180,15 @@ class TkWidgetImpl(Widget):
         self.window.itemconfig(self.__widget_id, width=event.width)
         self.window.itemconfig(self.__widget_id, height=event.height)
 
+
+    def __multiselect(self, event):
+        self._selected = True
+        self.window.itemconfig(self.__outline_id, state=tk.NORMAL)
+        if "selected" in self._events:                               
+            for event in self._events["selected"]:
+                event(SelectEvent(self, True))
+        
+
     def __select(self, event):
         self.selected = True
 
@@ -184,10 +203,10 @@ class TkWidgetImpl(Widget):
         # callback
         if value and "selected" in self._events:
             for event in self._events["selected"]:
-                event(Event(self))
+                event(SelectEvent(self, False))
         if not value and "unselected" in self._events:
             for event in self._events["unselected"]:
-                event(Event(self))
+                event(SelectEvent(self, False))
 
 
 class TkMovableWidgetImpl(MovableWidget, TkWidgetImpl):

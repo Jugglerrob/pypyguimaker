@@ -9,11 +9,13 @@ import code_editor as editor
 import styles
 
 gui_objects = [] # all gui objs in the designer
-selected_object = None # The currently selected gui obj
+selected_objects = () # The currently selected gui obj
 property_entries = {} # A dict of available property entries {k:name v:(containing panel, entry/associated var)}
 root = None # The tk root window
 main_canvas = None # The main canvas to put new gui objs on
 current_filename = None
+
+updating_drag = False # used for dragging multiple widgets
 
 def initialize():
     global root, main_canvas, property_entries, property_frame, designer_title, code_title, code_editor, widget_counts
@@ -135,7 +137,8 @@ def initialize():
 
 def delete_selected():
     """deletes all currently selected guiobjs"""
-    delete(selected_object)
+    for obj in selected_objects:
+        delete(obj)
 
 
 def delete(guiobj):
@@ -143,8 +146,8 @@ def delete(guiobj):
     """removes a guiobj from the program"""
     gui_objects.remove(guiobj)
     guiobj.delete()
-    if selected_object == guiobj:
-        selected_object = None
+    if guiobj in selected_objects:
+        selected_objects.remove(guiobj)
     
 
 def show_code(event=None):
@@ -314,7 +317,11 @@ def get_property_value(name):
     """
     returns the set value of the property entry given the name
     """
-    return property_entries[name][1].get()
+    value = property_entries[name][1].get()
+    if value == "\032":
+        return None
+    else:
+        return property_entries[name][1].get()
 
 
 def set_property_value(name, value):
@@ -342,33 +349,59 @@ def hide_property(name):
     property_entries[name][0].pack_forget()
 
 
-def load_property(name, value):
+def load_property(name, value, multi):
     """
     shows and sets the property value
     """
     show_property(name)
-    set_property_value(name, value)
+    if multi:
+        multi_properties[name] = multi_properties.get(name, 0) + 1
+        old_value = get_property_value(name)
+        if old_value != str(value):
+            set_property_value(name, "\032")
+        else:
+            set_property_value(name, value)
+    else:
+        set_property_value(name, value)
 
+
+def start_load_properties_multi():
+    global multi_properties
+    multi_properties = {} # a dict of properties and how many times its been loaded
+
+
+def finish_load_properties_multi(total_loaded):
+    global multi_properties
+    for name in multi_properties.keys():
+        if multi_properties[name] < total_loaded:
+            hide_property(name)
+    multi_properties = {}
+    
 
 def load_selectedobj_properties():
-    load_properties(selected_object)
+    pass
 
 
 def save_selectedobj_properties():
-    save_properties(selected_object)
+    global updating_drag
+    updating_drag = True
+    for obj in selected_objects:
+        save_properties(obj)
+    updating_drag = False
 
 
-def load_properties(guiobj):
-    hide_all_properties()
-    # The ordering of these calls determines the position of the properties
-    load_guiobj_properties(guiobj)
-    load_widget_properties(guiobj)
-    load_movable_properties(guiobj)
-    load_sizable_properties(guiobj)
-    load_textcontainer_properties(guiobj)
-    load_entry_properties(guiobj)
-    load_button_properties(guiobj)
-    load_checkbutton_properties(guiobj)
+def load_properties(guiobj, multi):
+    if not multi:
+        hide_all_properties()
+        # The ordering of these calls determines the position of the properties
+    load_guiobj_properties(guiobj, multi)
+    load_widget_properties(guiobj, multi)
+    load_movable_properties(guiobj, multi)
+    load_sizable_properties(guiobj, multi)
+    load_textcontainer_properties(guiobj, multi)
+    load_entry_properties(guiobj, multi)
+    load_button_properties(guiobj, multi)
+    load_checkbutton_properties(guiobj, multi)
 
     root.focus() # reset text focus. Removes any highlighting
 
@@ -396,46 +429,68 @@ def save_properties(guiobj):
 
 
 def save_checkbutton_properties(guiobj):
-    guiobj.command = get_property_value("Command")
-    guiobj.offvalue = get_property_value("Off Value")
-    guiobj.onvalue = get_property_value("On Value")
-    guiobj.takefocus = get_property_value("Take Focus")
-    guiobj.variable = get_property_value("Variable")
+    command = get_property_value("Command")
+    offvalue = get_property_value("Off Value")
+    onvalue = get_property_value("On Value")
+    takefocus = get_property_value("Take Focus")
+    variable = get_property_value("Variable")
 
+    if command is not None:
+        guiobj.command = command
+    if offvalue is not None:
+        guiobj.offvalue = offvalue
+    if onvalue is not None:
+        guiobj.takefocus = onvalue
+    if variable is not None:
+        guiobj.variable = variable
 
-def load_checkbutton_properties(guiobj):
+def load_checkbutton_properties(guiobj, multi):
     if isinstance(guiobj, GUIObj.Checkbutton):
-        load_property("Command", guiobj.command)
-        load_property("Off Value", guiobj.offvalue)
-        load_property("On Value", guiobj.onvalue)
-        load_property("Take Focus", guiobj.takefocus)
-        load_property("Variable", guiobj.variable)
+        load_property("Command", guiobj.command, multi)
+        load_property("Off Value", guiobj.offvalue, multi)
+        load_property("On Value", guiobj.onvalue, multi)
+        load_property("Take Focus", guiobj.takefocus, multi)
+        load_property("Variable", guiobj.variable, multi)
 
 
 def save_entry_properties(guiobj):
-    guiobj.justify = get_property_value("Justify")
-    guiobj.show = get_property_value("Show")
-    guiobj.associated_variable = get_property_value("Associated Variable")
-    guiobj.validate = get_property_value("Validate")
-    guiobj.validate_command = get_property_value("Validate Command")
+    justify = get_property_value("Justify")
+    show = get_property_value("Show")
+    associated_variable = get_property_value("Associated Variable")
+    validate = get_property_value("Validate")
+    validate_command = get_property_value("Validate Command")
+
+    if justify is not None:
+        guiobj.justify = justify
+    if show is not None:
+        guiobj.show = show
+    if associated_variable is not None:
+        guiobj.associated_variable = associated_variable
+    if validate is not None:
+        guiobj.validate = validate
+    if validate_command is not None:
+        guiobj.validate_command = validate_command
 
 
-def load_entry_properties(guiobj):
+def load_entry_properties(guiobj, multi):
     if isinstance(guiobj, GUIObj.Entry):
-        load_property("Justify", guiobj.justify)
-        load_property("Show", guiobj.show)
-        load_property("Associated Variable", guiobj.associated_variable)
-        load_property("Validate", guiobj.validate)
-        load_property("Validate Command", guiobj.validate)
+        load_property("Justify", guiobj.justify, multi)
+        load_property("Show", guiobj.show, multi)
+        load_property("Associated Variable", guiobj.associated_variable, multi)
+        load_property("Validate", guiobj.validate, multi)
+        load_property("Validate Command", guiobj.validate, multi)
 
 
 def save_button_properties(guiobj):
-    guiobj.command = get_property_value("Command")
+    command = get_property_value("Command")
+
+    if command is not None:
+        guiobj.command = command
 
 
-def load_button_properties(guiobj):
+def load_button_properties(guiobj, multi):
     if isinstance(guiobj, GUIObj.Button):
-        load_property("Command", guiobj.command)
+        load_property("Command", guiobj.command, multi)
 
 
 def save_movable_properties(guiobj):
@@ -444,18 +499,22 @@ def save_movable_properties(guiobj):
     try:
         x = int(get_property_value("X Position"))
     except:
-        pass
+        x = guiobj.position.x
     try:
         y = int(get_property_value("Y Position"))
     except:
-        pass
+        y = guiobj.position.y
     guiobj.position = GUIObj.Vector(x, y)
 
 
-def load_movable_properties(guiobj):
+def load_movable_properties(guiobj, multi):
     if isinstance(guiobj, GUIObj.MovableWidget):
-        load_property("X Position", guiobj.position.x)
-        load_property("Y Position", guiobj.position.y)
+        if not multi and len(selected_objects) > 1:
+            load_property("X Position", guiobj.position.x, True)
+            load_property("Y Position", guiobj.position.y, True)
+        else:
+            load_property("X Position", guiobj.position.x, multi)
+            load_property("Y Position", guiobj.position.y, multi)
 
 
 def save_sizable_properties(guiobj):
@@ -464,28 +523,35 @@ def save_sizable_properties(guiobj):
     try:
         x = int(get_property_value("Width"))
     except:
-        pass
+        x = guiobj.size.x
     try:
         y = int(get_property_value("Height"))
     except:
-        pass
+        y = guiobj.size.y
     guiobj.size = GUIObj.Vector(x, y)
 
 
-def load_sizable_properties(guiobj):
+def load_sizable_properties(guiobj, multi):
     if isinstance(guiobj, GUIObj.SizableWidget):
-        load_property("Width", guiobj.size.x)
-        load_property("Height", guiobj.size.y)
+        if not multi and len(selected_objects) > 1:
+            load_property("Width", guiobj.size.x, True)
+            load_property("Height", guiobj.size.y, True)
+        else:
+            load_property("Width", guiobj.size.x, multi)
+            load_property("Height", guiobj.size.y, multi)
 
 
 def save_textcontainer_properties(guiobj):
-    guiobj.text = get_property_value("Text")
+    text = get_property_value("Text")
+
+    if text is not None:
+        guiobj.text = text
     # TODO: save font
 
 
-def load_textcontainer_properties(guiobj):
+def load_textcontainer_properties(guiobj, multi):
     if isinstance(guiobj, GUIObj.TextContainer):
-        load_property("Text", guiobj.text)
+        load_property("Text", guiobj.text, multi)
 
 
 def save_widget_properties(guiobj):
@@ -493,17 +559,23 @@ def save_widget_properties(guiobj):
     pass
 
 
-def load_widget_properties(guiobj):
+def load_widget_properties(guiobj, multi):
     pass
 
 
 def save_guiobj_properties(guiobj):
-    guiobj.name = get_property_value("Name")
+    name = get_property_value("Name")
 
+    if name is not None:
+        name = get_property_value("Name")
 
-def load_guiobj_properties(guiobj):
+def load_guiobj_properties(guiobj, multi):
     if isinstance(guiobj, GUIObj.GUIObj):
-        load_property("Name", guiobj.name)
+        if not multi:
+            load_property("Name", guiobj.name, multi)
+        if multi:
+            load_property("Name", "\032", multi)
+            hide_property("Name")
 
 
 def set_background(widget, color):
@@ -527,49 +599,74 @@ def get_guiobj(name):
     return None
 
 
+def on_move(guievent):
+    """
+    callback for when a widget is dragged
+
+    moves all other selected widgets
+    """
+    global updating_drag
+    if not updating_drag:
+        updating_drag = True
+        for obj in selected_objects:
+            if obj is not guievent.caller:
+                position = obj.position
+                position += guievent.delta
+                obj.position = position
+        updating_drag = False
+
 def on_selection(guievent):
-    global selected_object
+    global selected_objects
     """
     callback for when a widget is selected
 
     unselects all other widgets and sets the properties panel to be focused on the current widget
     """
-    save_properties(selected_object)
+    for obj in selected_objects:
+        save_properties(obj)
     caller = guievent.caller
-    unselect_others(caller)
-    selected_object = caller
-    load_properties(selected_object)
-    if isinstance(caller, GUIObj.MovableWidget):
-        caller.bind_event("moved", lambda event: load_movable_properties(caller))
-    if isinstance(caller, GUIObj.SizableWidget):
-        caller.bind_event("resized", lambda event: load_sizable_properties(caller))
+    if caller not in selected_objects:
+        if guievent.multiselect is False:
+            unselect_others(caller)
+            selected_objects = [caller]
+            load_properties(caller, False)
+        else:
+            selected_objects.append(caller)
+            start_load_properties_multi()
+            for obj in selected_objects:
+                load_properties(obj, True)
+            finish_load_properties_multi(len(selected_objects))
+        if isinstance(caller, GUIObj.MovableWidget):
+            caller.bind_event("moved", lambda event: load_movable_properties(caller, False))
+        if isinstance(caller, GUIObj.SizableWidget):
+            caller.bind_event("resized", lambda event: load_sizable_properties(caller, False))
 
 
 def unselect_others(exluded):
     """
     unselects all guiobjs except for the excluded obj
     """
-    global selected_object
+    global selected_objects
     
     for obj in gui_objects:
         if obj is not exluded:
             obj.selected = False
-            if obj is selected_object:
+            if obj in selected_objects:
                 save_properties(obj)
-                selected_object = None
+    selected_objects = [exluded]
 
 
 def unselect_all(event=None):
     """
     sets the selected state of all guibojs to False
     """
-    global selected_object
+    global selected_objects
     
     for obj in gui_objects:
         obj.selected = False
-    if selected_object is not None:
-        save_properties(selected_object)
-        selected_object = None
+    for obj in selected_objects:
+        save_properties(obj)
+    selected_objects = []
 
 
 def clear():
@@ -726,6 +823,7 @@ def load_button(obj, assignments, method_calls):
 
     new_button = GUIObj.TtkButtonImpl(name=obj.object_name, canvas=parent.widget, position=position, size=size, parent=parent, command=command, text=text)
     new_button.bind_event("selected", on_selection)
+    new_button.bind_event("moved", on_move)
     gui_objects.append(new_button)
 
 
@@ -760,6 +858,7 @@ def load_label(obj, assignments, method_calls):
 
     new_label = GUIObj.TtkLabelImpl(name=obj.object_name, canvas=parent.widget, position=position, size=size, parent=parent, text=text)
     new_label.bind_event("selected", on_selection)
+    new_label.bind_event("moved", on_move)
     gui_objects.append(new_label)
 
 
@@ -831,6 +930,7 @@ def load_entry(obj, assignment, method_calls):
                                     validate=validate,
                                     validatecommand=validate_command)
     new_entry.bind_event("selected", on_selection)
+    new_entry.bind_event("moved", on_move)
     gui_objects.append(new_entry)
 
 
@@ -865,6 +965,7 @@ def load_checkbutton(obj, assignments, method_calls):
 
     new_checkbutton = GUIObj.TtkCheckbuttonImpl(name=obj.object_name, canvas=parent.widget, position=position, size=size, parent=parent, text=text)
     new_checkbutton.bind_event("selected", on_selection)
+    new_checkbutton.bind_event("moved", on_move)
     gui_objects.append(new_checkbutton)
             
 
