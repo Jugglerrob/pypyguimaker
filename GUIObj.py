@@ -158,6 +158,11 @@ class TkWidgetImpl(Widget):
         # bind the configure method
         self.window.bind("<Configure>", self.__configure, add="+")
 
+    def delete(self):
+        """removes this object from the display"""
+        self.canvas.delete(self.view_id)
+        
+
     def __configure(self, event):
         """This is called when the main window is changed, for example, resized. So we also resize everything inside the canvas"""
         self.window.itemconfig(self.__outline_id, width=event.width+4)

@@ -128,8 +128,24 @@ def initialize():
     
     load("test_gui.py")
 
+    root.bind("<Delete>", lambda event: delete_selected())
+
     root.mainloop()
 
+
+def delete_selected():
+    """deletes all currently selected guiobjs"""
+    delete(selected_object)
+
+
+def delete(guiobj):
+    global selected_object
+    """removes a guiobj from the program"""
+    gui_objects.remove(guiobj)
+    guiobj.delete()
+    if selected_object == guiobj:
+        selected_object = None
+    
 
 def show_code(event=None):
     main_canvas.pack_forget()
