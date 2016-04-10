@@ -265,6 +265,7 @@ def drop_new_widget(event, widget_name, widget_type):
         position = GUIObj.Vector(x, y)
         new_widget = widget_type(parent=root_widget, name=name, canvas=root_widget.widget, position=position)
         new_widget.bind_event("selected", on_selection)
+        new_widget.bind_event("moved", on_move)
         gui_objects.append(new_widget)
 
 
