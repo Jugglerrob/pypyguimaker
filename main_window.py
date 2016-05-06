@@ -575,10 +575,10 @@ def load_widget_properties(guiobj, multi):
 
 
 def save_guiobj_properties(guiobj):
-    name = get_property_value("Name")
-
+    name = get_property_value("Name") 
     if name is not None:
-        name = get_property_value("Name")
+        guiobj.name = get_property_value("Name")
+        
 
 def load_guiobj_properties(guiobj, multi):
     if isinstance(guiobj, GUIObj.GUIObj):
