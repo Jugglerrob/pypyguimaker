@@ -1030,8 +1030,12 @@ def gui_to_src():
     src = ""
     for line in lines:
         src += (" " * 4) + line + "\n"
+    _globals = "\n    global "
+    for obj in gui_objects:
+        _globals += obj.name + ", "
+    _globals = _globals[0:-2] + "\n"
     # add user code
-    src = code_editor["text"] + "def initialize():" + src + "initialize()\n"
+    src = code_editor["text"] + "def initialize():" + _globals + src + "initialize()\n"
     return src
 
 
