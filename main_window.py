@@ -130,9 +130,17 @@ def initialize():
     
     load("test_gui.py")
 
-    root.bind("<Delete>", lambda event: delete_selected())
+    root.bind("<Delete>", lambda event: on_delete_press())
 
     root.mainloop()
+
+
+def on_delete_press():
+    """called when the delete key is pressed. Determines if the selected widgets are actually to be deleted"""
+    for entry in property_entries.values():
+        if root.focus_get() is entry[1]:
+            return "break"
+    delete_selected()
 
 
 def delete_selected():
@@ -306,6 +314,7 @@ def create_property_option(panel, options):
         value.trace("w", lambda *args: save_selectedobj_properties())
         
         return (frame, value)
+
 
 def hide_all_properties():
     """
@@ -624,6 +633,7 @@ def on_selection(guievent):
 
     unselects all other widgets and sets the properties panel to be focused on the current widget
     """
+    root.focus() # will remove all entry focus
     for obj in selected_objects:
         save_properties(obj)
     caller = guievent.caller
