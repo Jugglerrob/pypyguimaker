@@ -414,6 +414,7 @@ def load_properties(guiobj, multi):
     load_entry_properties(guiobj, multi)
     load_button_properties(guiobj, multi)
     load_checkbutton_properties(guiobj, multi)
+    load_text_properties(guiobj, multi)
 
     root.focus() # reset text focus. Removes any highlighting
 
@@ -424,6 +425,8 @@ def save_properties(guiobj):
     """
     if isinstance(guiobj, GUIObj.Checkbutton):
         save_checkbutton_properties(guiobj)
+    if isinstance(guiobj, GUIObj.Text):
+        save_text_properties(guiobj)
     if isinstance(guiobj, GUIObj.Entry):
         save_entry_properties(guiobj)
     if isinstance(guiobj, GUIObj.Button):
@@ -463,6 +466,16 @@ def load_checkbutton_properties(guiobj, multi):
         load_property("On Value", guiobj.onvalue, multi)
         load_property("Take Focus", guiobj.takefocus, multi)
         load_property("Variable", guiobj.variable, multi)
+
+
+def save_text_properties(guiobj):
+    #  Text doesn't add anything new so we can just pass
+    pass
+
+
+def load_text_properties(guiobj, multi):
+    #  Text doesn't add anything new so we can just pass
+    pass
 
 
 def save_entry_properties(guiobj):
@@ -772,6 +785,8 @@ def load_initialize(source):
             load_entry(obj, assignments, method_calls)
         elif obj.object_type == "Checkbutton":
             load_checkbutton(obj, assignments, method_calls)
+        elif obj.object_type == "Text":
+            load_text(obj, assignments, method_calls)
         else:
             print("Error when loading objects. Objects of type %s are not yet supported" % (obj.object_type))
 
@@ -873,6 +888,32 @@ def load_label(obj, assignments, method_calls):
     new_label.bind_event("selected", on_selection)
     new_label.bind_event("moved", on_move)
     gui_objects.append(new_label)
+
+
+def load_text(obj, assignments, method_calls):
+    """
+    loads text code into a guiobj
+    """
+    parent_name = obj.args[0]
+    parent = get_guiobj(parent_name)
+    position = GUIObj.Vector(0, 0)
+    size = GUIObj.Vector(0, 0)
+
+    for method in method_calls.values():
+        if method.method_name == "place":
+            if "x" in method.keywords:
+                position.x = int(method.keywords["x"])
+            if "y" in method.keywords:
+                position.y = int(method.keywords["y"])
+            if "width" in method.keywords:
+                size.x = int(method.keywords["width"])
+            if "height" in method.keywords:
+                size.y = int(method.keywords["height"])
+
+    new_text = GUIObj.TkTextImpl(name=obj.object_name, canvas=parent.widget, position=position, size=size, parent=parent)
+    new_text.bind_event("selected", on_selection)
+    new_text.bind_event("moved", on_move)
+    gui_objects.append(new_text)
 
 
 def load_entry(obj, assignment, method_calls):
@@ -1016,6 +1057,8 @@ def gui_to_src():
     for obj in gui_objects:
         if isinstance(obj, GUIObj.TtkLabelImpl):
             src += label_to_src(obj)
+        elif isinstance(obj, GUIObj.TkTextImpl):
+            src += text_to_src(obj)
         elif isinstance(obj, GUIObj.TtkButtonImpl):
             src += button_to_src(obj)
         elif isinstance(obj, GUIObj.TtkEntryImpl):
@@ -1115,6 +1158,22 @@ def entry_to_src(entry, associated_vars):
     return src
 
 
+def text_to_src(text):
+    """
+    returns the string of the generated src for the text
+    """
+    name = text.name
+    posx = str(text.position.x)
+    posy = str(text.position.y)
+    sizex = str(text.size.x)
+    sizey = str(text.size.y)
+    parent = text.parent.name
+    src = ""
+    src += '%(name)s = Text(%(parent)s)\n' % locals()
+    src += "%(name)s.place(x=%(posx)s, y=%(posy)s, width=%(sizex)s, height=%(sizey)s)\n\n" % locals()
+    return src
+
+       
 def checkbutton_to_src(checkbutton, associated_vars):
     """
     returns the string of the generated src for the entry.
