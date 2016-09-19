@@ -445,7 +445,7 @@ class Entry(TextContainer, MovableWidget, SizableWidget):
         self.validate_command = validate_command # a callback to dynamically validate contents
 
 
-class Text(TextContainer, MovableWidget, SizableWidget):
+class Text(MovableWidget, SizableWidget):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         
@@ -545,12 +545,12 @@ class TtkEntryImpl(TkSizableWidgetImpl, TkMovableWidgetImpl, Entry):
         self.widget["show"] = value
 
 
-class TkTextImpl(TkSizableWidgetImpl, TkMovableWidgetImpl, Entry):
-    def __init__(self, canvas=None, text="", **kwargs):
+class TkTextImpl(TkSizableWidgetImpl, TkMovableWidgetImpl):
+    def __init__(self, canvas=None, text="", size=Vector(200, 40), **kwargs):
         self._text = text
         
         new_entry = tk.Text(canvas.winfo_toplevel(), state=tk.DISABLED)
-        super().__init__(widget=new_entry, text=text, **kwargs)
+        super().__init__(widget=new_entry, text=text, size=size, **kwargs)
 
     @property
     def text(self):
