@@ -443,6 +443,11 @@ class Entry(TextContainer, MovableWidget, SizableWidget):
         self.associated_variable = associated_variable
         self.validate = validate # when to validate http://infohost.nmt.edu/tcc/help/pubs/tkinter/web/entry-validation.html
         self.validate_command = validate_command # a callback to dynamically validate contents
+
+
+class Text(TextContainer, MovableWidget, SizableWidget):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         
 
 class TtkButtonImpl(Button, TkSizableWidgetImpl, TkMovableWidgetImpl):
@@ -500,7 +505,6 @@ class TtkEntryImpl(TkSizableWidgetImpl, TkMovableWidgetImpl, Entry):
         self.justify = justify
         self.show = show
         
-
     @property
     def text(self):
         return self._text
@@ -539,6 +543,26 @@ class TtkEntryImpl(TkSizableWidgetImpl, TkMovableWidgetImpl, Entry):
     def show(self, value):   
         self._show = value
         self.widget["show"] = value
+
+
+class TkTextImpl(TkSizableWidgetImpl, TkMovableWidgetImpl, Entry):
+    def __init__(self, canvas=None, text="", **kwargs):
+        self._text = text
+        
+        new_entry = tk.Text(canvas.winfo_toplevel(), state=tk.DISABLED)
+        super().__init__(widget=new_entry, text=text, **kwargs)
+
+    @property
+    def text(self):
+        return self._text
+
+    @text.setter
+    def text(self, value):
+        self._text = value
+        self.widget["state"] = tk.NORMAL
+        self.widget.delete(1.0, tk.END)
+        self.widget.insert(1.0, value)
+        self.widget["state"] = tk.DISABLED
 
 
 class TtkCheckbuttonImpl(TkSizableWidgetImpl, TkMovableWidgetImpl, Checkbutton):

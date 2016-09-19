@@ -50,7 +50,8 @@ def initialize():
     widgets=(("Button", GUIObj.TtkButtonImpl),
             ("Label", GUIObj.TtkLabelImpl),
             ("Checkbutton", GUIObj.TtkCheckbuttonImpl),
-            ("Entry", GUIObj.TtkEntryImpl)
+            ("Entry", GUIObj.TtkEntryImpl),
+            ("Text", GUIObj.TkTextImpl)
             )
 
     # How many widgets have been created. Useful for naming
