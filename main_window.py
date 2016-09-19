@@ -22,6 +22,7 @@ def initialize():
 
     root = tk.Tk()
     root.configure(background=colors.background)
+    root.wm_title("PyPyGUIMaker")
     root.pack_propagate(0)
     width = 600
     height = 800
@@ -722,12 +723,15 @@ def load(filename):
     """
     loads the file with the given filename
     """
+    global current_filename
     clear()
     file = open(filename, "r")
     source = file.read()
     file.close()
     load_code(source)
     load_initialize(source)
+    current_filename = file.name
+    root.wm_title("PyPyGUIMaker: %s" % (current_filename))
 
 
 def load_code(source):
@@ -1038,7 +1042,8 @@ def save_as():
         filename = tk.filedialog.asksaveasfilename(defaultextension='.py',
                                                    filetypes=[('python files', '.py'), ('all files', '.*')])
         save_gui(filename) # temp test code
-        current_filename = filename        
+        current_filename = filename
+        root.wm_title("PyPyGUIMaker: %s" % (current_filename))
     except:
         pass # this will be called when the user exits or cancels the file dialog
 
