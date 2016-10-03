@@ -904,8 +904,8 @@ def load_initialize(source):
     loads the guiobjs from the initialization function in the given file
     """
     tree = guiparser.get_tree(source)
-    initialize_objects = guiparser.get_objects(tree)
     initialize_function = guiparser.get_initialize(tree)
+    initialize_objects = guiparser.get_objects(initialize_function)
     for obj in initialize_objects:
         # make sense of the returned objects and create them in the canvas
         assignments = guiparser.get_assignments(initialize_function, obj.object_name)

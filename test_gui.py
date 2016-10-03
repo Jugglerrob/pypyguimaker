@@ -119,8 +119,9 @@ def get_text(widget):
         return widget['text']
 
 def append_text(widget, newtext):
-    current_text = get_text(widget)
-    set_text(widget, current_text + newtext)
+    a = baa()
+    current_text_b = get_text(widget)
+    set_text(widget, current_text_b + newtext)
 
 def popup(msg):
     box.showinfo('msg', msg)
