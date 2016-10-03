@@ -751,6 +751,9 @@ def load(filename):
 
 
 def load_code(source):
+    """
+    load the src code into GUIObjs and into the code editor
+    """
     src = [] # lines of source code
     # This state machine loads every line into src besides "initialize()" and everything inside "def initialize()"
     state = "NORMAL"
@@ -775,7 +778,8 @@ def load_code(source):
                 continue
             elif len(line) - len(line.lstrip(' ')) < indent_level:
                 state = "NORMAL"
-                src.append(line)
+                if line != "initialize()":
+                    src.append(line)
                 continue
             else:
                 continue
