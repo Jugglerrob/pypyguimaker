@@ -17,6 +17,117 @@ current_filename = None
 
 updating_drag = False # used for dragging multiple widgets
 
+# Methods to ignore when loading src code
+ignore_methods = ["def initialize():",
+                  "def set_text(widget, newtext):",
+                  "def get_text(widget):",
+                  "def append_text(widget, newtext):",
+                  "def popup(msg):",
+                  "def ask_for_string(prompt):",
+                  "def ask_for_yes_no(prompt):",
+                  "def get_selected(somelistbox):"]
+helper_code = """
+def set_text(widget, newtext):
+	if type(widget).__name__ == 'ScrolledList':               # have to do this because ScrolledList may not have been included
+		widget.listbox.delete(0,END)
+		if type(newtext) == list:
+			for string in newtext:
+				widget.listbox.insert(END,string)
+		elif type(newtext) == str:
+			for string in newtext.split('\\n'):
+ 				widget.listbox.insert(END,string)
+
+	elif type(widget).__name__ == 'ScrolledText':               # have to do this because ScrolledText may not have been included
+		widget.text.delete('1.0', END)
+		widget.text.insert('1.0', newtext)
+		widget.text.mark_set(INSERT, '1.0')
+
+	elif type(widget) == Text:
+		widget.delete('1.0', END)
+		widget.insert('1.0', newtext)
+
+	elif type(widget) == Entry:
+		widget.delete(0,END)
+		widget.insert(0,newtext)
+
+	elif type(widget) == Label:
+		widget['text'] = newtext
+
+	elif type(widget) == Button:
+		widget.config(text=newtext)
+
+	elif type(widget) == Checkbutton:
+		widget.config(text=newtext)
+
+	elif type(widget) == Scale:
+		widget['label'] = newtext
+
+	elif type(widget) == Listbox:
+		widget.delete(0,END)
+		if type(newtext) == list:
+			for string in newtext:
+				widget.insert(END,string)
+		elif type(newtext) == str:
+			for string in newtext.split('\\n'):
+				widget.insert(END,string)
+
+	elif type(widget) == Menubutton:
+		widget['text'] = newtext
+
+def get_text(widget):
+	if type(widget).__name__ == 'ScrolledList':
+		return list(widget.listbox.get(0,END))
+
+	elif type(widget).__name__ == 'ScrolledText':
+		return widget.text.get('1.0', END+'-1c')
+
+	elif type(widget) == Text:
+		return widget.get('1.0', END+'-1c')
+
+	elif type(widget) == Entry:
+		return widget.get()
+
+	elif type(widget) == Label:
+		return widget.cget('text')
+
+	elif type(widget) == Button:
+		return widget['text']
+
+	elif type(widget) == Checkbutton:
+		return widget.cget('text')
+
+	elif type(widget) == Scale:
+		return widget['label']
+
+	elif type(widget) == Listbox:
+		return list(widget.get(0,END))
+
+	elif type(widget) == Menubutton:
+		return widget['text']
+
+def append_text(widget, newtext):
+	current_text = gettext(widget)
+	settext(widget, current_text + newtext)
+
+def popup(msg):
+	box.showinfo('msg', msg)
+
+def ask_for_string(prompt):
+	return simpledialog.askstring('request for input', prompt)
+
+def ask_for_yes_no(prompt):
+	return box.askquestion('request for yes/no', prompt)
+
+def get_selected(somelistbox):
+	if type(somelistbox) == Listbox:
+		try:
+			return somelistbox.get(somelistbox.curselection()[0])
+		except:
+			return ''
+	else:
+		return somelistbox.getselected()
+"""
+
 def initialize():
     global root, main_canvas, property_entries, property_frame, designer_title, code_title, code_editor, widget_counts
 
@@ -760,18 +871,18 @@ def load_code(source):
     indent_level = 0
     for line in source.splitlines():
         if state == "NORMAL":
-            if line.strip(' ') == 'def initialize():':
-                state = "INITIALIZE_START"
+            if line.strip(' ') in ignore_methods:
+                state = "IGNORE_START"
                 continue
             if line == "initialize()":
                 continue
             else:
                 src.append(line)
-        elif state == "INITIALIZE_START":
-            state = "INITIALIZE"
+        elif state == "IGNORE_START":
+            state = "IGNORE"
             indent_level = len(line) - len(line.lstrip(' '))
             continue
-        elif state == "INITIALIZE":
+        elif state == "IGNORE":
             if line.lstrip(' ').startswith('#'):
                 continue
             elif len(line.lstrip(' ')) == 0:
@@ -783,7 +894,8 @@ def load_code(source):
                 continue
             else:
                 continue
-    code_editor["text"] = "\n".join(src)
+            
+    code_editor["text"] = "\n".join(src).rstrip()
     code_editor.updateLineNumbers()
                 
 
@@ -1142,6 +1254,8 @@ def gui_to_src():
     _globals = _globals[0:-2] + "\n"
     # add user code
     src = code_editor["text"] + "def initialize():" + _globals + src + "initialize()\n"
+    # add helper methods
+    src += "\n" + helper_code + "\n"
     return src
 
 
