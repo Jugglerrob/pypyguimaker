@@ -807,6 +807,8 @@ def load_initialize(source):
             load_checkbutton(obj, assignments, method_calls)
         elif obj.object_type == "Text":
             load_text(obj, assignments, method_calls)
+        elif obj.object_type == "Canvas":
+            load_canvas(obj, assignments, method_calls)
         else:
             print("Error when loading objects. Objects of type %s are not yet supported" % (obj.object_type))
 
@@ -1041,6 +1043,39 @@ def load_checkbutton(obj, assignments, method_calls):
     new_checkbutton.bind_event("selected", on_selection)
     new_checkbutton.bind_event("moved", on_move)
     gui_objects.append(new_checkbutton)
+
+
+def load_canvas(obj, assignments, method_calls):
+    """
+    loads canvas into a guiobj
+    """
+    parent_name = obj.args[0]
+    parent = get_guiobj(parent_name)
+    bg = ""
+    position = GUIObj.Vector(0, 0)
+    size = GUIObj.Vector(0, 0)
+
+    if "bg" in obj.keywords:
+        bg = obj.keywords["bg"]
+
+    for method in method_calls.values():
+        if method.method_name == "place":          
+            if "x" in method.keywords:
+                position.x = int(method.keywords["x"])
+            if "y" in method.keywords:
+                position.y = int(method.keywords["y"])
+            if "width" in method.keywords:
+                size.x = int(method.keywords["width"])
+            if "height" in method.keywords:
+                size.y = int(method.keywords["height"])
+        if method.method_name in ["config", "configure"]:
+            if "bg" in method.keywords:
+                bg = method.keywords["bg"]
+
+    new_canvas = GUIObj.TkCanvasImpl(name=obj.object_name, canvas=parent.widget, position=position, size=size, parent=parent, bg=bg)
+    new_canvas.bind_event("selected", on_selection)
+    new_canvas.bind_event("moved", on_move)
+    gui_objects.append(new_canvas)
             
 
 def save():
@@ -1089,6 +1124,8 @@ def gui_to_src():
         elif isinstance(obj, GUIObj.WindowImpl):
             root_src, mainloop = root_to_src(obj)
             src += root_src
+        elif isinstance(obj, GUIObj.TkCanvasImpl):
+            src += canvas_to_src(obj, associated_vars)
     src += mainloop
     # indent all the widget code
     lines = src.splitlines()
@@ -1194,7 +1231,25 @@ def text_to_src(text):
     src += "%(name)s.place(x=%(posx)s, y=%(posy)s, width=%(sizex)s, height=%(sizey)s)\n\n" % locals()
     return src
 
-       
+
+def canvas_to_src(canvas, associated_vars):
+    """
+    returns the string of the generated src for the entry.
+    associated_vars in a list of already generated associated variables
+    """
+    name = canvas.name
+    posx = str(canvas.position.x)
+    posy = str(canvas.position.y)
+    sizex = str(canvas.size.x)
+    sizey = str(canvas.size.y)
+    parent = canvas.parent.name
+    bg = canvas.bg
+    src = ""
+    src += '%(name)s = Canvas(%(parent)s, bg="%(bg)s")\n' % locals()
+    src += "%(name)s.place(x=%(posx)s, y=%(posy)s, width=%(sizex)s, height=%(sizey)s)\n\n" % locals()
+    return src
+
+
 def checkbutton_to_src(checkbutton, associated_vars):
     """
     returns the string of the generated src for the entry.
