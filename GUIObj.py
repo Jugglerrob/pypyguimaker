@@ -164,7 +164,7 @@ class TkWidgetImpl(Widget):
         self.outline.bind("<Button-1>", self.__select, add="+")
         self.widget.bind("<Button-1>", self.__select, add="+")
         self.widget.bind("<Control-1>", self.__multiselect, add="+")
-        self.widget.lift()
+        tk.Misc.lift(self.widget)  # The normal self.widget.lift() method won't work on a canvas :/
         # bind the configure method
         self.window.bind("<Configure>", self.__configure, add="+")
 
@@ -425,6 +425,11 @@ class Label(TextContainer, MovableWidget, SizableWidget):
         super().__init__(**kwargs)
 
 
+class Canvas(MovableWidget, SizableWidget):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+
 class Checkbutton(Label):
     def __init__(self, command="", offvalue="", onvalue="", takefocus=True, variable="", size=Vector(90, 20), text="Checkbutton", **kwargs):
         super().__init__(command=command, offvalue=offvalue, onvalue=onvalue, takefocus=takefocus, variable=variable, size=size, text=text, **kwargs)
@@ -584,6 +589,12 @@ class TtkCheckbuttonImpl(TkSizableWidgetImpl, TkMovableWidgetImpl, Checkbutton):
     def text(self, value):
         self._text = value
         self.widget["text"] = self._text
+
+
+class TkCanvasImpl(TkSizableWidgetImpl, TkMovableWidgetImpl, Canvas):
+    def __init__(self, canvas=None, **kwargs):
+        new_canvas = tk.Canvas(canvas.winfo_toplevel(), bg="white")
+        super().__init__(widget=new_canvas, canvas=canvas, **kwargs)
         
 
 class WindowImpl(Window):

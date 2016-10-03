@@ -52,7 +52,8 @@ def initialize():
             ("Label", GUIObj.TtkLabelImpl),
             ("Checkbutton", GUIObj.TtkCheckbuttonImpl),
             ("Entry", GUIObj.TtkEntryImpl),
-            ("Text", GUIObj.TkTextImpl)
+            ("Text", GUIObj.TkTextImpl),
+            ("Canvas", GUIObj.TkCanvasImpl)
             )
 
     # How many widgets have been created. Useful for naming
@@ -416,6 +417,7 @@ def load_properties(guiobj, multi):
     load_button_properties(guiobj, multi)
     load_checkbutton_properties(guiobj, multi)
     load_text_properties(guiobj, multi)
+    load_canvas_properties(guiobj, multi)
 
     root.focus() # reset text focus. Removes any highlighting
 
@@ -432,6 +434,8 @@ def save_properties(guiobj):
         save_entry_properties(guiobj)
     if isinstance(guiobj, GUIObj.Button):
         save_button_properties(guiobj)
+    if isinstance(guiobj, GUIObj.Canvas):
+        save_canvas_properties(guiobj)
     if isinstance(guiobj, GUIObj.MovableWidget):
         save_movable_properties(guiobj)
     if isinstance(guiobj, GUIObj.SizableWidget):
@@ -476,6 +480,16 @@ def save_text_properties(guiobj):
 
 def load_text_properties(guiobj, multi):
     #  Text doesn't add anything new so we can just pass
+    pass
+
+
+def save_canvas_properties(guiobj):
+    #  canvas doesn't add anything new so we can just pass
+    pass
+
+
+def load_canvas_properties(guiobj, multi):
+    #  canvas doesn't add anything new so we can just pass
     pass
 
 
