@@ -426,8 +426,9 @@ class Label(TextContainer, MovableWidget, SizableWidget):
 
 
 class Canvas(MovableWidget, SizableWidget):
-    def __init__(self, **kwargs):
+    def __init__(self, bg="white", **kwargs):
         super().__init__(**kwargs)
+        self.bg = bg
 
 
 class Checkbutton(Label):
@@ -592,10 +593,19 @@ class TtkCheckbuttonImpl(TkSizableWidgetImpl, TkMovableWidgetImpl, Checkbutton):
 
 
 class TkCanvasImpl(TkSizableWidgetImpl, TkMovableWidgetImpl, Canvas):
-    def __init__(self, canvas=None, **kwargs):
-        new_canvas = tk.Canvas(canvas.winfo_toplevel(), bg="white")
-        super().__init__(widget=new_canvas, canvas=canvas, **kwargs)
-        
+    def __init__(self, canvas=None, bg="White", **kwargs):
+        self._bg = bg
+        new_canvas = tk.Canvas(canvas.winfo_toplevel(), bg=bg)
+        super().__init__(widget=new_canvas, bg=bg, canvas=canvas, **kwargs)
+
+    @property
+    def bg(self):
+        return self._bg
+
+    @bg.setter
+    def bg(self, value):
+        self._bg = value
+        self.widget.config(bg=self.bg)
 
 class WindowImpl(Window):
     def __init__(self, canvas=None, size=Vector(0, 0), **kwargs):

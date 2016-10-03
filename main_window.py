@@ -115,7 +115,8 @@ def initialize():
                 ("Off Value", "entry"),
                 ("Take Focus", "entry"),
                 ("Variable", "entry"),
-                ("Validate Command", "entry")
+                ("Validate Command", "entry"),
+                ("Background Color", "entry")
                 )
     
     property_entries = {}
@@ -484,13 +485,14 @@ def load_text_properties(guiobj, multi):
 
 
 def save_canvas_properties(guiobj):
-    #  canvas doesn't add anything new so we can just pass
-    pass
+    bg = get_property_value("Background Color")
+    if bg is not None:
+        guiobj.bg = bg
 
 
 def load_canvas_properties(guiobj, multi):
-    #  canvas doesn't add anything new so we can just pass
-    pass
+    if isinstance(guiobj, GUIObj.Canvas):
+        load_property("Background Color", guiobj.bg, multi)
 
 
 def save_entry_properties(guiobj):
