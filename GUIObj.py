@@ -263,11 +263,23 @@ class TkMovableWidgetImpl(MovableWidget, TkWidgetImpl):
         if isinstance(self.parent, Sized):
             max_x = self.parent.size.x - self.size.x
             max_y = self.parent.size.y - self.size.y
+            
         self.__maxpos = Vector(max_x, max_y)
         if position is None:
+            new_position = Vector(self.position.x, self.position.y)
+            if new_position.x > max_x:
+                new_position.x = max_x
+            if new_position.y > max_y:
+                new_position.y = max_y
+            self.position = new_position
             self.position = self.position
         else:
-            self.position = position
+            new_position = Vector(position.x, position.y)
+            if new_position.x > max_x:
+                new_position.x = max_x
+            if new_position.y > max_y:
+                new_position.y = max_y
+            self.position = new_position
 
 
     @property
@@ -286,7 +298,7 @@ class TkMovableWidgetImpl(MovableWidget, TkWidgetImpl):
             value.x = 0
         if value.y < 0:
             value.y = 0
-        
+
         # calculate the delta and move the view_id by the delta
         delta_x = value.x - self.position.x
         delta_y = value.y - self.position.y
@@ -337,6 +349,12 @@ class TkSizableWidgetImpl(SizableWidget, TkWidgetImpl):
         #self.size = self.size
         self.__click_offset = Vector(0, 0)
 
+        # callback
+        if "resized" in self._events:
+            for event in self._events["resized"]:
+                new_event = Event(self)
+                event(new_event)
+
     def __show_handle(self, event=None):
         self.window.itemconfig(self.__handle_id, state=tk.NORMAL)
 
@@ -350,6 +368,7 @@ class TkSizableWidgetImpl(SizableWidget, TkWidgetImpl):
         new_size = Vector(0, 0)
         new_size.x = event.x_root - self.__click_offset.x
         new_size.y = event.y_root - self.__click_offset.y
+        new_size = self._clamp_size(new_size)
         self.size = new_size
 
     def __click(self, event):
@@ -357,6 +376,19 @@ class TkSizableWidgetImpl(SizableWidget, TkWidgetImpl):
         The handle was clicked. Set up to be dragged
         """
         self.__click_offset = Vector(event.x_root - self.size.x, event.y_root - self.size.y)
+
+
+    def _clamp_size(self, size):
+        """ 
+        Clamps a vector size so that it does not go out of bounds of the parent
+        """
+        new_size = Vector(size.x, size.y)
+        if isinstance(self, MovableWidget) and isinstance(self.parent, Sized):
+            if new_size.x + self.position.x > self.parent.size.x:
+                new_size.x = self.parent.size.x - self.position.x
+            if new_size.y + self.position.y > self.parent.size.y:
+                new_size.y = self.parent.size.y - self.position.y
+        return new_size
 
     @property
     def size(self):
