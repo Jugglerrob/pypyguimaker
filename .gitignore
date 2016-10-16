@@ -65,6 +65,9 @@ target/
 # pyenv
 .python-version
 
+# swap files
+*.swp
+
 # custom ignore list
 output_file.py
 
