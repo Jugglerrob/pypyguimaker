@@ -128,8 +128,10 @@ def get_selected(somelistbox):
         return somelistbox.getselected()
 """
 
+
 def initialize():
-    global root, main_canvas, property_entries, property_frame, designer_title, code_title, code_editor, widget_counts
+    global root, main_canvas, property_entries, property_frame, designer_title
+    global code_title, code_editor, widget_counts
 
     root = tk.Tk()
     root.configure(background=colors.background)
@@ -138,10 +140,10 @@ def initialize():
     width = 600
     height = 800
     root.geometry("%dx%d" % (width, height))
-    root.state("zoomed") # sets to maximized. Supposably only works on windows and some linux machines
+    root.wm_attributes("-zoomed", 1)  # sets to maximized.
 
     styles.initialize()
-    
+
     bold = fonts.Font(weight="bold", size=10)
 
     root_frame = ttk.Frame(root, style='BackgroundFrame.TFrame') # The root frame is just a giant frame used to add extra padding between the window border and elements
