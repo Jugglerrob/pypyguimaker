@@ -312,7 +312,8 @@ def create_widget_entry(frame, name, widget_type):
     """
     widget_frame = ttk.Frame(frame)
     widget_frame.pack(side=tk.TOP, fill=tk.X)
-    widget_label = ttk.Label(widget_frame, text=name)
+    widget_label = ttk.Label(widget_frame, text=name,
+                             style="WhitePrimaryLabel.TLabel")
     widget_label.pack(side=tk.TOP, padx=5, fill=tk.X)
     widget_label.bind('<Enter>',
                       lambda event: enter_widget_entry(widget_frame,
@@ -352,7 +353,7 @@ def leave_widget_entry(frame, label):
     un-highlights the entry
     """
     frame.configure(style='TFrame')
-    label.configure(style='TLabel')
+    label.configure(style='WhitePrimaryLabel.TLabel')
 
 
 def click_new_widget(event):
@@ -431,9 +432,9 @@ def create_property_option(panel, options):
     name = options[0]
     input_type = options[1]
 
-    frame = ttk.Frame(panel)
+    frame = ttk.Frame(panel, style='WhitePrimaryFrame.TFrame')
     # frame.pack(fill=tk.X, pady=2)
-    label = ttk.Label(frame)
+    label = ttk.Label(frame, style='WhitePrimaryLabel.TLabel')
     label["text"] = name
     label.pack(side=tk.LEFT, padx=5)
 
@@ -443,6 +444,7 @@ def create_property_option(panel, options):
         border.pack(side=tk.RIGHT, padx=5)
         text = tk.Entry(border, width=20, borderwidth=2, insertwidth=1,
                         relief="flat",
+                        foreground="black",
                         disabledbackground=colors.white_disabled)
         text.pack(side=tk.RIGHT, padx=2, pady=2)
 

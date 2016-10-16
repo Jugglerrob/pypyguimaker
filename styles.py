@@ -28,7 +28,8 @@ def initialize():
                     background=colors.white_secondary)
     style.configure('WhitePrimaryFrame.TFrame',
                     background=colors.white_primary)
-
+    style.configure('WhitePrimaryLabel.TLabel',
+                    background=colors.white_primary)
     style.configure('LightBluePrimaryNavLabel.TLabel',
                     foreground=colors.background,
                     background=colors.lightblue_primary)
