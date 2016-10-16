@@ -943,7 +943,9 @@ def load_code(source):
                 continue
             elif len(line) - len(line.lstrip(' ')) < indent_level:
                 state = "NORMAL"
-                if line != "initialize()":
+                if line.strip(' ') in ignore_methods:
+                    state = "IGNORE_START"
+                elif line != "initialize()":
                     src.append(line)
                 continue
             else:
