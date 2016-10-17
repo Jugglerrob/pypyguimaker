@@ -342,8 +342,6 @@ def get_root_position(widget, x, y):
         x += widget.winfo_x()
         y += widget.winfo_y()
         widget = widget.master
-    x += widget.winfo_x()
-    y += widget.winfo_y()
     return x, y
 
 
@@ -573,6 +571,7 @@ def load_properties(guiobj, multi):
     load_checkbutton_properties(guiobj, multi)
     load_text_properties(guiobj, multi)
     load_canvas_properties(guiobj, multi)
+    load_window_properties(guiobj, multi)
 
     root.focus()  # reset text focus. Removes any highlighting
 
@@ -581,6 +580,8 @@ def save_properties(guiobj):
     """
     saves all the properties set in the options panel to the selected widget
     """
+    if isinstance(guiobj, GUIObj.Window):
+        save_window_properties(guiobj)
     if isinstance(guiobj, GUIObj.Checkbutton):
         save_checkbutton_properties(guiobj)
     if isinstance(guiobj, GUIObj.Text):
@@ -593,7 +594,7 @@ def save_properties(guiobj):
         save_canvas_properties(guiobj)
     if isinstance(guiobj, GUIObj.MovableWidget):
         save_movable_properties(guiobj)
-    if isinstance(guiobj, GUIObj.SizableWidget):
+    if isinstance(guiobj, GUIObj.Sized):
         save_sizable_properties(guiobj)
     if isinstance(guiobj, GUIObj.TextContainer):
         save_textcontainer_properties(guiobj)
@@ -601,6 +602,18 @@ def save_properties(guiobj):
         save_widget_properties(guiobj)
     if isinstance(guiobj, GUIObj.GUIObj):
         save_guiobj_properties(guiobj)
+
+
+def save_window_properties(guiobj):
+    title = get_property_value("Text")
+
+    if title is not None:
+        guiobj.title = title
+
+
+def load_window_properties(guiobj, multi):
+    if isinstance(guiobj, GUIObj.Window):
+        load_property("Text", guiobj.title, multi)
 
 
 def save_checkbutton_properties(guiobj):
@@ -731,7 +744,7 @@ def save_sizable_properties(guiobj):
 
 
 def load_sizable_properties(guiobj, multi):
-    if isinstance(guiobj, GUIObj.SizableWidget):
+    if isinstance(guiobj, GUIObj.Sized):
         if not multi and len(selected_objects) > 1:
             load_property("Width", guiobj.size.x, True)
             load_property("Height", guiobj.size.y, True)
@@ -771,7 +784,8 @@ def save_guiobj_properties(guiobj):
 def load_guiobj_properties(guiobj, multi):
     if isinstance(guiobj, GUIObj.GUIObj):
         if not multi:
-            load_property("Name", guiobj.name, multi)
+            if not isinstance(guiobj, GUIObj.WindowImpl):
+                load_property("Name", guiobj.name, multi)
         if multi:
             load_property("Name", "\032", multi)
             hide_property("Name")
@@ -827,6 +841,8 @@ def on_selection(guievent):
     root.focus()  # will remove all entry focus
     for obj in selected_objects:
         save_properties(obj)
+    if get_guiobj("root") in selected_objects:
+        selected_objects.remove(get_guiobj("root"))
     caller = guievent.caller
     if caller not in selected_objects:
         if guievent.multiselect is False:

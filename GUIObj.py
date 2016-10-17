@@ -693,7 +693,7 @@ class WindowImpl(Window):
                  **kwargs):
         self.position = Vector(0, 0)
         self._title = title
-        super().__init__(size=size, tite=title, **kwargs)
+        super().__init__(size=size, title=title, **kwargs)
         self.outline = tk.Frame(canvas, bg=colors.white_secondary)
         self.outline.pack(fill=tk.BOTH)
         self.representation = ttk.Frame(self.outline)
@@ -714,6 +714,9 @@ class WindowImpl(Window):
         self.representation.bind("<Button-1>", self.__select, add="+")
         self.title_label.bind("<Button-1>", self.__select, add="+")
         self.widget.bind("<Button-1>", self.__select, add="+")
+        self.representation.bind("<Control-1>", self.__select, add="+")
+        self.title_label.bind("<Control-1>", self.__select, add="+")
+        self.widget.bind("<Control-1>", self.__select, add="+")
 
     def __select(self, event):
         self.selected = True
@@ -737,3 +740,27 @@ class WindowImpl(Window):
         if not value and "unselected" in self._events:
             for event in self._events["unselected"]:
                 event(SelectEvent(self, False))
+
+    @property
+    def title(self):
+        return self._title
+
+    @title.setter
+    def title(self, value):
+        self._title = value
+        try:
+            self.title_label["text"] = value
+        except:
+            pass
+
+    @property
+    def size(self):
+        return self._size
+
+    @size.setter
+    def size(self, value):
+        self._size = value
+        try:
+            self.widget.configure(height=value.y, width=value.x)
+        except:
+            pass
