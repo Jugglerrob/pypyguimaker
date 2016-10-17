@@ -1,12 +1,12 @@
-__author__ = 'robert'
-
 import tkinter as tk
 import tkinter.ttk as ttk
 import colors
 
+
 class Event:
     def __init__(self, caller):
         self.caller = caller
+
 
 class SelectEvent:
     def __init__(self, caller, multiselect):
@@ -20,13 +20,11 @@ class Vector:
         self.x = x
         self.y = y
 
-
     def __str__(self):
         return "Vector: %f, %f" % (self.x, self.y)
 
-
     def __add__(self, other):
-       return Vector(self.x + other.x, self.y + other.y)
+        return Vector(self.x + other.x, self.y + other.y)
 
 
 class Sized:
@@ -46,9 +44,10 @@ class GUIObj:
 
     def bind_event(self, event, action):
         """Binds the action to the event."""
-        # This is my way of doing callbacks/bindings/events. I looked up on google for python event and it seems there
-        # is not built in event code. So this is a quick and basic way to do it. Store actions for an event as a list
-        # in a dict, where the event is the key
+        # This is my way of doing callbacks/bindings/events. I looked up on
+        # google for python event and it seems there is not built in event
+        # code. So this is a quick and basic way to do it. Store actions for an
+        # event as a list in a dict, where the event is the key
         actions = self._events.get(event, [])
         if action not in actions:
             actions += [action]
@@ -88,7 +87,7 @@ class Widget(GUIObj):
         super().__init__(**kwargs)
         self.parent = parent
         self.parent.add_child(self)
-        
+
 
 class MovableWidget(Widget):
     """A Widget that has a position"""
@@ -118,31 +117,37 @@ class TkWidgetImpl(Widget):
 
         The canvas property is the canvas that this widget exists on.
 
-        The widget property is the real tk widget that is being used to display the widget representation. This may or
-        not be the same type that is being represented. For example, a label could be used to display a button
-        representation.
+        The widget property is the real tk widget that is being used to display
+        the widget representation. This may or not be the same type that is
+        being represented. For example, a label could be used to display a
+        button representation.
 
-        The window property is a canvas that holds everything display related to this widget. Anything that needs to be
-        displayed should be placed onto this canvas in a canvas window. For example, the real tk widget, the outline
-        frame, and the drag handles belong in individual canvas windows on this canvas.
+        The window property is a canvas that holds everything display related
+        to this widget. Anything that needs to be displayed should be placed
+        onto this canvas in a canvas window. For example, the real tk widget,
+        the outline frame, and the drag handles belong in individual canvas
+        windows on this canvas.
 
-        The selected property is true if the widget is currently selected. It is initialized to False
+        The selected property is true if the widget is currently selected. It
+        is initialized to False
 
-        This class also provides makes use of the "selected" and "unselected" bindings. You should bind these to show
-        or hide things that should be shown or hidden based on active selection.
+        This class also provides makes use of the "selected" and "unselected"
+        bindings. You should bind these to show or hide things that should be
+        shown or hidden based on active selection.
 
-        This class also binds mouse-1 on the given widget to selected. a.k.a. when you click on the real tk widget
-        self.selected = True
+        This class also binds mouse-1 on the given widget to selected. a.k.a.
+        when you click on the real tk widget self.selected = True
 
-        NOTE: Instantiating this class only will leave you with a 0X0 size widget. For a widget that can be seen,
-              use TkSizableWidgetImpl.
+        NOTE: Instantiating this class only will leave you with a 0X0 size
+        widget. For a widget that can be seen, use TkSizableWidgetImpl.
         """
 
         super().__init__(parent=parent, **kwargs)
         self.canvas = parent.widget
         self.widget = widget
-        self.widget["cursor"] = "arrow" # makes the cursor always be the arrow
-        self.window = tk.Canvas()  # the window is a canvas that contains everything related to the widget
+        self.widget["cursor"] = "arrow"  # makes the cursor always be the arrow
+        # the window is a canvas that contains everything related to the widget
+        self.window = tk.Canvas()
         # create the selection outline
         # We use a blue frame and make it 4 pixels wider than the window canvas
         self.outline = tk.Frame(bg=colors.lightblue_primary)
@@ -155,39 +160,43 @@ class TkWidgetImpl(Widget):
                                                       state=tk.HIDDEN)
         # place the widget into the window
         # we use the same size as a window canvas
-        self.__widget_id = self.window.create_window(0, 0, window=widget, width=0, anchor=tk.NW,
-                                  height=0)
-        # the view id is used to keep track of everything INCLUDING the window canvas on the main canvas
-        self.view_id = self.canvas.create_window(0, 0, window=self.window, anchor=tk.NW)
+        self.__widget_id = self.window.create_window(0, 0, window=widget,
+                                                     width=0, anchor=tk.NW,
+                                                     height=0)
+        # the view id is used to keep track of everything INCLUDING the window
+        # canvas on the main canvas
+        self.view_id = self.canvas.create_window(0, 0, window=self.window,
+                                                 anchor=tk.NW)
         self._selected = False
         # bind the widget and move it to the front
         self.outline.bind("<Button-1>", self.__select, add="+")
         self.widget.bind("<Button-1>", self.__select, add="+")
         self.widget.bind("<Control-1>", self.__multiselect, add="+")
-        tk.Misc.lift(self.widget)  # The normal self.widget.lift() method won't work on a canvas :/
+        # The normal self.widget.lift() method won't work on a canvas :/
+        tk.Misc.lift(self.widget)
         # bind the configure method
         self.window.bind("<Configure>", self.__configure, add="+")
 
     def delete(self):
         """removes this object from the display"""
         self.canvas.delete(self.view_id)
-        
 
     def __configure(self, event):
-        """This is called when the main window is changed, for example, resized. So we also resize everything inside the canvas"""
+        """
+        This is called when the main window is changed, for example, resized.
+        So we also resize everything inside the canvas
+        """
         self.window.itemconfig(self.__outline_id, width=event.width+4)
         self.window.itemconfig(self.__outline_id, height=event.height+4)
         self.window.itemconfig(self.__widget_id, width=event.width)
         self.window.itemconfig(self.__widget_id, height=event.height)
 
-
     def __multiselect(self, event):
         self._selected = True
         self.window.itemconfig(self.__outline_id, state=tk.NORMAL)
-        if "selected" in self._events:                               
+        if "selected" in self._events:
             for event in self._events["selected"]:
                 event(SelectEvent(self, True))
-        
 
     def __select(self, event):
         self.selected = True
@@ -199,7 +208,9 @@ class TkWidgetImpl(Widget):
     @selected.setter
     def selected(self, value):
         self._selected = value
-        self.window.itemconfig(self.__outline_id, state=tk.NORMAL if value else tk.HIDDEN)  # hide or show the outline
+        # hide or show the outline
+        self.window.itemconfig(self.__outline_id,
+                               state=tk.NORMAL if value else tk.HIDDEN)
         # callback
         if value and "selected" in self._events:
             for event in self._events["selected"]:
@@ -211,22 +222,23 @@ class TkWidgetImpl(Widget):
 
 class TkMovableWidgetImpl(MovableWidget, TkWidgetImpl):
     """
-    This class is the movable widget implementation. This implementation should be almost completely universal to all
-    widgets.
+    This class is the movable widget implementation. This implementation should
+    be almost completely universal to all widgets.
 
     This class implements the position property as a Vector
 
-    This class also implements the "moved" event, which calls the bound action with a Vector parameter representing the
-    delta moved
+    This class also implements the "moved" event, which calls the bound action
+    with a Vector parameter representing the delta moved
 
-    By inheriting from this class <B1-Motion> is bound on the widget to implement dragging.
+    By inheriting from this class <B1-Motion> is bound on the widget to
+    implement dragging.
     """
     def __init__(self, position=Vector(0, 0), **kwargs):
         self.__maxpos = Vector(0, 0)
         self.__click_offset = Vector(0, 0)
         self._position = Vector(0, 0)
         super().__init__(**kwargs)
-        self.__recalc_maxpos(None, position) # this also set the position
+        self.__recalc_maxpos(None, position)  # this also set the position
 
         self.widget.bind("<B1-Motion>", self.__drag, add="+")
         self.widget.bind("<Button-1>", self.__click, add="+")
@@ -239,31 +251,33 @@ class TkMovableWidgetImpl(MovableWidget, TkWidgetImpl):
         """
         Called from the mouse being dragged across the widget
         """
-        # event.x and event.y is the position of the mouse relative to the widget.This is essentially the delta
+        # event.x and event.y is the position of the mouse relative to the
+        # widget.This is essentially the delta
         new_pos = Vector(0, 0)
         new_pos.x = event.x_root - self.__click_offset.x
         new_pos.y = event.y_root - self.__click_offset.y
-        
+
         self.position = new_pos
 
     def __click(self, event):
         """
         Called from the widget being clicked on
         """
-        self.__click_offset = Vector(event.x_root - self.position.x, event.y_root - self.position.y)
-
+        self.__click_offset = Vector(event.x_root - self.position.x,
+                                     event.y_root - self.position.y)
 
     def __recalc_maxpos(self, event=None, position=None):
         """
         Recalculates and fixes the maximum x and y positions.
-        Called when the user resizes the widget or parent widget, or durring __init__
+        Called when the user resizes the widget or parent widget, or durring
+        __init__
         """
         max_x = 0
         max_y = 0
         if isinstance(self.parent, Sized):
             max_x = self.parent.size.x - self.size.x
             max_y = self.parent.size.y - self.size.y
-            
+
         self.__maxpos = Vector(max_x, max_y)
         if position is None:
             new_position = Vector(self.position.x, self.position.y)
@@ -280,7 +294,6 @@ class TkMovableWidgetImpl(MovableWidget, TkWidgetImpl):
             if new_position.y > max_y:
                 new_position.y = max_y
             self.position = new_position
-
 
     @property
     def position(self):
@@ -302,7 +315,7 @@ class TkMovableWidgetImpl(MovableWidget, TkWidgetImpl):
         # calculate the delta and move the view_id by the delta
         delta_x = value.x - self.position.x
         delta_y = value.y - self.position.y
-        
+
         self.canvas.move(self.view_id, delta_x, delta_y)
         self._position = value
         # callback
@@ -312,29 +325,36 @@ class TkMovableWidgetImpl(MovableWidget, TkWidgetImpl):
                 new_event = Event(self)
                 new_event.delta = delta
                 event(new_event)
-    
-        
+
+
 class TkSizableWidgetImpl(SizableWidget, TkWidgetImpl):
     """
-    This is the implementation for a sizable widget. This should be almost universal to all tk widgets.
+    This is the implementation for a sizable widget. This should be almost
+    universal to all tk widgets.
 
     This implements the size property which is a vector.
 
     This implements the "resized" event which calls with no params
 
-    Inheriting from this class will place a square handle on the corner of the widget that can be dragged to resize.
+    Inheriting from this class will place a square handle on the corner of the
+    widget that can be dragged to resize.
     """
     def __init__(self, **kwargs):
         self._size = self.size
         self.__handle_id = "NONE"
         super().__init__(**kwargs)
         # create a handle as a frame
-        handle = tk.Frame(self.canvas.winfo_toplevel(), bg=colors.lightblue_primary)
+        handle = tk.Frame(self.canvas.winfo_toplevel(),
+                          bg=colors.lightblue_primary)
         handle_fill = tk.Frame(handle, bg="white")
         handle_fill.pack(fill=tk.BOTH, expand=True, pady=2, padx=2)
         # put the handle into a canvas window at the bottom right
         handle_size = 10
-        self.__handle_id = self.window.create_window(self.size.x+2, self.size.y+2, width=handle_size, height=handle_size, anchor=tk.SE,
+        self.__handle_id = self.window.create_window(self.size.x+2,
+                                                     self.size.y+2,
+                                                     width=handle_size,
+                                                     height=handle_size,
+                                                     anchor=tk.SE,
                                                      window=handle)
         self.window.itemconfig(self.__handle_id, state=tk.HIDDEN)
         # bind the handle drags
@@ -346,7 +366,7 @@ class TkSizableWidgetImpl(SizableWidget, TkWidgetImpl):
         self.bind_event("selected", self.__show_handle)
         self.bind_event("unselected", self.__hide_handle)
         # Have the widget update it's size
-        #self.size = self.size
+        # self.size = self.size
         self.__click_offset = Vector(0, 0)
 
         # callback
@@ -360,7 +380,7 @@ class TkSizableWidgetImpl(SizableWidget, TkWidgetImpl):
 
     def __hide_handle(self, event=None):
         self.window.itemconfig(self.__handle_id, state=tk.HIDDEN)
-        
+
     def __drag(self, event):
         """
         The handle was dragged and this widget needs to be resized by the delta
@@ -375,11 +395,11 @@ class TkSizableWidgetImpl(SizableWidget, TkWidgetImpl):
         """
         The handle was clicked. Set up to be dragged
         """
-        self.__click_offset = Vector(event.x_root - self.size.x, event.y_root - self.size.y)
-
+        self.__click_offset = Vector(event.x_root - self.size.x,
+                                     event.y_root - self.size.y)
 
     def _clamp_size(self, size):
-        """ 
+        """
         Clamps a vector size so that it does not go out of bounds of the parent
         """
         new_size = Vector(size.x, size.y)
@@ -396,6 +416,7 @@ class TkSizableWidgetImpl(SizableWidget, TkWidgetImpl):
             return self._size
         else:
             return Vector(0, 0)
+
     @size.setter
     def size(self, value):
         if hasattr(self, '_size'):
@@ -412,9 +433,9 @@ class TkSizableWidgetImpl(SizableWidget, TkWidgetImpl):
             self.canvas.itemconfig(self.view_id, width=self.size.x)
             self.canvas.itemconfig(self.view_id, height=self.size.y)
             # adjust the handle position
-            #if hasattr(self, "__handle_id"):
+            # if hasattr(self, "__handle_id"):
             self.window.move(self.__handle_id, delta.x, delta.y)
-            
+
             # callback
             if "resized" in self._events:
                 for event in self._events["resized"]:
@@ -464,8 +485,12 @@ class Canvas(MovableWidget, SizableWidget):
 
 
 class Checkbutton(Label):
-    def __init__(self, command="", offvalue="", onvalue="", takefocus=True, variable="", size=Vector(90, 20), text="Checkbutton", **kwargs):
-        super().__init__(command=command, offvalue=offvalue, onvalue=onvalue, takefocus=takefocus, variable=variable, size=size, text=text, **kwargs)
+    def __init__(self, command="", offvalue="", onvalue="", takefocus=True,
+                 variable="", size=Vector(90, 20), text="Checkbutton",
+                 **kwargs):
+        super().__init__(command=command, offvalue=offvalue, onvalue=onvalue,
+                         takefocus=takefocus, variable=variable, size=size,
+                         text=text, **kwargs)
         self.command = command
         self.offvalue = offvalue
         self.onvalue = onvalue
@@ -474,30 +499,35 @@ class Checkbutton(Label):
 
 
 class Entry(TextContainer, MovableWidget, SizableWidget):
-    def __init__(self, justify="left", show="", validate="", validate_command="", associated_variable="", size=Vector(90, 20), **kwargs):
+    def __init__(self, justify="left", show="", validate="",
+                 validate_command="", associated_variable="",
+                 size=Vector(90, 20), **kwargs):
         super().__init__(size=size, **kwargs)
         self.justify = justify
-        self.show = show # indicates what character to replace with for password fields
+        # indicates what character to replace with for password fields
+        self.show = show
         self.associated_variable = associated_variable
-        self.validate = validate # when to validate http://infohost.nmt.edu/tcc/help/pubs/tkinter/web/entry-validation.html
-        self.validate_command = validate_command # a callback to dynamically validate contents
+        # when to validate
+        # http://infohost.nmt.edu/tcc/help/pubs/tkinter/web/entry-validation.html
+        self.validate = validate
+        self.validate_command = validate_command
 
 
 class Text(MovableWidget, SizableWidget):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        
+
 
 class TtkButtonImpl(Button, TkSizableWidgetImpl, TkMovableWidgetImpl):
-    def __init__(self, canvas=None, text="Button", size=Vector(50, 40), **kwargs):
+    def __init__(self, canvas=None, text="Button", size=Vector(50, 40),
+                 **kwargs):
         """
         @type canvas: tk.Canvas
         """
-        #self.__text = ""
-        
         new_button = ttk.Label(canvas.winfo_toplevel(), style="TButton")
 
-        super().__init__(widget=new_button, text=text, size=size, canvas=canvas, **kwargs)
+        super().__init__(widget=new_button, text=text, size=size,
+                         canvas=canvas, **kwargs)
 
     @property
     def text(self):
@@ -510,10 +540,11 @@ class TtkButtonImpl(Button, TkSizableWidgetImpl, TkMovableWidgetImpl):
     def text(self, value):
         self._text = value
         self.widget["text"] = self._text
-        
+
 
 class TtkLabelImpl(Label, TkSizableWidgetImpl, TkMovableWidgetImpl):
-    def __init__(self, canvas=None, text="Label", size=Vector(35, 20), **kwargs):
+    def __init__(self, canvas=None, text="Label", size=Vector(35, 20),
+                 **kwargs):
         new_label = ttk.Label(canvas.winfo_toplevel(), style="TLabel")
         super().__init__(widget=new_label, canvas=canvas, size=size, **kwargs)
         self.text = text
@@ -532,17 +563,27 @@ class TtkLabelImpl(Label, TkSizableWidgetImpl, TkMovableWidgetImpl):
 
 
 class TtkEntryImpl(TkSizableWidgetImpl, TkMovableWidgetImpl, Entry):
-    def __init__(self, canvas=None, text="", justify="left", show="", validate="", validate_command="", associated_variable="",  **kwargs):
+    def __init__(self, canvas=None, text="", justify="left", show="",
+                 validate="", validate_command="", associated_variable="",
+                 **kwargs):
         self._text = text
         self._justify = justify
         self._show = show
-        
-        new_entry = ttk.Entry(canvas.winfo_toplevel(), style="EntryStyle.TEntry", state=tk.DISABLED)
-        super().__init__(widget=new_entry, text=text, justify=justify, validate=validate, validate_command=validate_command, associated_variable=associated_variable, **kwargs)
+
+        new_entry = ttk.Entry(canvas.winfo_toplevel(),
+                              style="EntryStyle.TEntry",
+                              state=tk.DISABLED)
+        super().__init__(widget=new_entry,
+                         text=text,
+                         justify=justify,
+                         validate=validate,
+                         validate_command=validate_command,
+                         associated_variable=associated_variable,
+                         **kwargs)
         self.text = text
         self.justify = justify
         self.show = show
-        
+
     @property
     def text(self):
         return self._text
@@ -578,7 +619,7 @@ class TtkEntryImpl(TkSizableWidgetImpl, TkMovableWidgetImpl, Entry):
         return self._show
 
     @show.setter
-    def show(self, value):   
+    def show(self, value):
         self._show = value
         self.widget["show"] = value
 
@@ -586,7 +627,7 @@ class TtkEntryImpl(TkSizableWidgetImpl, TkMovableWidgetImpl, Entry):
 class TkTextImpl(TkSizableWidgetImpl, TkMovableWidgetImpl):
     def __init__(self, canvas=None, text="", size=Vector(200, 40), **kwargs):
         self._text = text
-        
+
         new_entry = tk.Text(canvas.winfo_toplevel(), state=tk.DISABLED)
         super().__init__(widget=new_entry, text=text, size=size, **kwargs)
 
@@ -603,13 +644,20 @@ class TkTextImpl(TkSizableWidgetImpl, TkMovableWidgetImpl):
         self.widget["state"] = tk.DISABLED
 
 
-class TtkCheckbuttonImpl(TkSizableWidgetImpl, TkMovableWidgetImpl, Checkbutton):
+class TtkCheckbuttonImpl(TkSizableWidgetImpl,
+                         TkMovableWidgetImpl,
+                         Checkbutton):
     def __init__(self, canvas=None, text="Checkbutton", **kwargs):
         self.intvar = tk.IntVar()
         self.intvar.set(0)
-        new_checkbutton = ttk.Checkbutton(canvas.winfo_toplevel(), style="CheckbuttonStyle.Checkbutton", variable=self.intvar, offvalue=0, onvalue=0)
+        new_checkbutton = ttk.Checkbutton(canvas.winfo_toplevel(),
+                                          style="CheckbuttonStyle.Checkbutton",
+                                          variable=self.intvar,
+                                          offvalue=0,
+                                          onvalue=0)
         self._text = text
-        super().__init__(text=text, widget=new_checkbutton, canvas=canvas, **kwargs)
+        super().__init__(text=text, widget=new_checkbutton, canvas=canvas,
+                         **kwargs)
 
     @property
     def text(self):
@@ -639,32 +687,10 @@ class TkCanvasImpl(TkSizableWidgetImpl, TkMovableWidgetImpl, Canvas):
         self._bg = value
         self.widget.config(bg=self.bg)
 
+
 class WindowImpl(Window):
     def __init__(self, canvas=None, size=Vector(0, 0), **kwargs):
         super().__init__(size=size, **kwargs)
         self.widget = tk.Canvas(canvas, width=size.x, height=size.y)
-        self.view_id = canvas.create_window(0, 0, window=self.widget, anchor=tk.NW)
-
-
-if __name__ == "__main__":
-    root = tk.Tk()
-    mainCanvas = tk.Canvas(root, bg="#aaa")
-    mainCanvas.pack()
-
-    example_window = Window(title='foo', name='root_window')
-
-    example_button = TtkButtonImpl(canvas=mainCanvas, position=Vector(40, 40), size=Vector(100, 200), parent=example_window)
-    print(example_button.parent)
-    #def selectExample(event): example.selected = True
-    #def resize(event): example.size = Vector(example.size.x + 2, example.size.y + 2)
-    #example.widget.bind("<Button-1>", selectExample)
-    #example.bind_event("handle_dragged", lambda x: resize(x))
-
-    root.mainloop()
-    #root = Window(name="master", title="My Test Program", size=(1920, 1080))
-    #mainFrame = Frame(parent=root, name="mainFrame", class_variable=True, size=(200, 600))
-    #testButton = Button(parent=mainFrame, name="testButton", text="click me!", size=(100, 20), position=(10, 10))
-
-
-    #for tests
-
+        self.view_id = canvas.create_window(0, 0, window=self.widget,
+                                            anchor=tk.NW)
