@@ -691,9 +691,10 @@ class TkCanvasImpl(TkSizableWidgetImpl, TkMovableWidgetImpl, Canvas):
 class WindowImpl(Window):
     def __init__(self, canvas=None, size=Vector(0, 0), title="window",
                  **kwargs):
+        self.position = Vector(0, 0)
         self._title = title
         super().__init__(size=size, tite=title, **kwargs)
-        self.outline = tk.Frame(canvas, bg=colors.lightblue_primary)
+        self.outline = tk.Frame(canvas, bg=colors.white_secondary)
         self.outline.pack(fill=tk.BOTH)
         self.representation = ttk.Frame(self.outline)
         self.representation.pack(fill=tk.BOTH, padx=2, pady=2)
