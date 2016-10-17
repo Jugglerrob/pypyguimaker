@@ -699,9 +699,12 @@ class WindowImpl(Window):
         self.representation.pack(fill=tk.BOTH, padx=2, pady=2)
         self.title_label = ttk.Label(self.representation,
                                      text=title,
-                                     style="WhitePrimaryLabel.TLabel")
-        self.title_label.pack(anchor="nw", padx=5, pady=5)
-        self.widget = tk.Canvas(self.representation,
+                                     style="WhitePrimaryLabel.TLabel",
+                                     )
+        self.title_label.pack(anchor="nw", side=tk.TOP, padx=5, pady=5)
+        self.wrapper = tk.Frame(self.representation)
+        self.wrapper.pack()
+        self.widget = tk.Canvas(self.wrapper,
                                 width=size.x,
                                 height=size.y)
         self.widget.pack()

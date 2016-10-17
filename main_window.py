@@ -342,6 +342,8 @@ def get_root_position(widget, x, y):
         x += widget.winfo_x()
         y += widget.winfo_y()
         widget = widget.master
+    x += widget.winfo_x()
+    y += widget.winfo_y()
     return x, y
 
 
