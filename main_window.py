@@ -1010,6 +1010,7 @@ def load_root(obj, assignments, method_calls):
         size = GUIObj.Vector(x, y)
     new_window = GUIObj.WindowImpl(canvas=main_canvas, title=title, size=size,
                                    name=obj.object_name)
+    new_window.bind_event("selected", on_selection)
     gui_objects.append(new_window)
 
 

@@ -689,8 +689,47 @@ class TkCanvasImpl(TkSizableWidgetImpl, TkMovableWidgetImpl, Canvas):
 
 
 class WindowImpl(Window):
-    def __init__(self, canvas=None, size=Vector(0, 0), **kwargs):
-        super().__init__(size=size, **kwargs)
-        self.widget = tk.Canvas(canvas, width=size.x, height=size.y)
-        self.view_id = canvas.create_window(0, 0, window=self.widget,
+    def __init__(self, canvas=None, size=Vector(0, 0), title="window",
+                 **kwargs):
+        self._title = title
+        super().__init__(size=size, tite=title, **kwargs)
+        self.outline = tk.Frame(canvas, bg=colors.lightblue_primary)
+        self.outline.pack(fill=tk.BOTH)
+        self.representation = ttk.Frame(self.outline)
+        self.representation.pack(fill=tk.BOTH, padx=2, pady=2)
+        self.title_label = ttk.Label(self.representation,
+                                     text=title,
+                                     style="WhitePrimaryLabel.TLabel")
+        self.title_label.pack(anchor="nw", padx=5, pady=5)
+        self.widget = tk.Canvas(self.representation,
+                                width=size.x,
+                                height=size.y)
+        self.widget.pack()
+        self.view_id = canvas.create_window(0, 0, window=self.outline,
                                             anchor=tk.NW)
+        self.representation.bind("<Button-1>", self.__select, add="+")
+        self.title_label.bind("<Button-1>", self.__select, add="+")
+        self.widget.bind("<Button-1>", self.__select, add="+")
+
+    def __select(self, event):
+        self.selected = True
+
+    @property
+    def selected(self):
+        return self._selected
+
+    @selected.setter
+    def selected(self, value):
+        self._selected = value
+        # hide or show the outline
+        if value:
+            self.outline.configure(bg=colors.lightblue_secondary)
+        else:
+            self.outline.configure(bg=colors.white_secondary)
+        # callback
+        if value and "selected" in self._events:
+            for event in self._events["selected"]:
+                event(SelectEvent(self, False))
+        if not value and "unselected" in self._events:
+            for event in self._events["unselected"]:
+                event(SelectEvent(self, False))
