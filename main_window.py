@@ -143,7 +143,10 @@ def initialize():
     width = 600
     height = 800
     root.geometry("%dx%d" % (width, height))
-    root.wm_attributes("-zoomed", 1)  # sets to maximized.
+    try:
+        root.state("zoomed")
+    except:
+        root.wm_attributes("-zoomed", 1)  # sets to maximized.
 
     styles.initialize()
 
