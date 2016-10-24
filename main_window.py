@@ -1011,6 +1011,19 @@ def load_initialize(source):
                   (obj.object_type))
 
 
+def load_command(cmd):
+    """
+    Given the value of a command attribute in an assignment on a guiobj, return
+    the appropriate string to represent it
+
+    This will make both lambdas and normal method names load to strings
+    """
+    if not isinstance(cmd, str):
+        return guiparser.get_lambda_value(cmd)
+    else:
+        return cmd
+
+
 def load_root(obj, assignments, method_calls):
     """
     loads the root object code into guiobjs
@@ -1047,7 +1060,7 @@ def load_button(obj, assignments, method_calls):
     size = GUIObj.Vector(0, 0)
 
     if "command" in obj.keywords:
-        command = obj.keywords["command"]
+        command = load_command(obj.keywords["command"])
     if "text" in obj.keywords:
         text = obj.keywords["text"]
 
@@ -1182,7 +1195,7 @@ def load_entry(obj, assignment, method_calls):
         elif word == "validate":
             validate = obj.keywords["validate"]
         elif word == "validatecommand":
-            validate_command = obj.keywords["validatecommand"]
+            validate_command = load_command(obj.keywords["validatecommand"])
 
     for method in method_calls.values():
         if method.method_name == "place":

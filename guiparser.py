@@ -97,6 +97,31 @@ def get_initialize(tree):
                     raise Exception("Initialization function may not contain arguments")
 
 
+def get_call_value(call_node):
+    """returns a string representing a call"""
+    s = get_name_value(call_node.func)
+    if isinstance(call_node.func.ctx, ast.Load):
+        # convert ast args to literals
+        args = [convert_arg(a) for a in call_node.args]
+        # suround literal strings with a set of quotes for easy placing into
+        # a string
+        args = ['"' + a + '"' if isinstance(a, str) else a for a in args]
+        # join all the args into a set of parens
+        s += "(" + ",".join(args) + ")"
+    return s
+    
+
+def get_name_value(name_node):
+    """returns a string representing a name"""
+    return name_node.id
+    
+
+def get_lambda_value(lambda_node):
+    """returns a string representing a lambda"""
+    astpp.parseprint(lambda_node)
+    return get_call_value(lambda_node.body)
+
+
 def get_globals(function_node):
     """returns all global variable names declared in a given function node"""
     found_globals = []

@@ -10,13 +10,13 @@ def initialize():
     root = Tk()
     root.title("Python application")
     root.geometry("500x500")
-    
-    randName959606 = Button(root, command=bar)
-    randName959606["text"] = "DEFAULT"
+
+    randName959606 = Button(root, command=lambda: print("You pressed a button!"))
+    randName959606["text"] = "Press Me!"
     randName959606.place(x=50, y=50, width=100, height=200)
     
     randName951894 = Button(root, command=bar)
-    randName951894["text"] = "DEFAULT"
+    randName951894["text"] = "Bar"
     randName951894.place(x=175, y=100, width=200, height=100)
     
     randLabel = Label(root)
