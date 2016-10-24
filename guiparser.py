@@ -118,7 +118,6 @@ def get_name_value(name_node):
 
 def get_lambda_value(lambda_node):
     """returns a string representing a lambda"""
-    astpp.parseprint(lambda_node)
     return get_call_value(lambda_node.body)
 
 
