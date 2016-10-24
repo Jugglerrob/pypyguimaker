@@ -6,6 +6,7 @@ import tkinter.filedialog
 import colors
 import code_editor as editor
 import styles
+import re
 
 gui_objects = []  # all gui objs in the designer
 selected_objects = ()  # The currently selected gui obj
@@ -1024,6 +1025,21 @@ def load_command(cmd):
         return cmd
 
 
+def save_command(cmd):
+    """
+    Given a str value for a command return the str that must be written in the
+    assignment value.
+
+    Basically adds lambda if we need to
+    """
+    if re.match(r".*\(.*\).*", cmd):
+        print("lambda")
+        return "lambda: " + cmd
+    else:
+        print("not lambda")
+        return cmd
+
+
 def load_root(obj, assignments, method_calls):
     """
     loads the root object code into guiobjs
@@ -1403,7 +1419,7 @@ def button_to_src(button):
     sizey = str(button.size.y)
     text = button.text
     parent = button.parent.name
-    command = button.command
+    command = save_command(button.command)
 
     src = ""
     if command:
@@ -1433,7 +1449,7 @@ def entry_to_src(entry, associated_vars):
     show = entry.show
     associated_variable = entry.associated_variable
     validate = entry.validate
-    validate_command = entry.validate_command
+    validate_command = save_command(entry.validate_command)
     src = ""
 
     if associated_variable and associated_variable not in associated_vars:
