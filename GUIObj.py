@@ -696,11 +696,11 @@ class WindowImpl(Window):
         super().__init__(size=size, title=title, **kwargs)
         self.outline = tk.Frame(canvas, bg=colors.white_secondary)
         self.outline.pack(fill=tk.BOTH)
-        self.representation = ttk.Frame(self.outline)
+        self.representation = ttk.Frame(self.outline, style="LightBluePrimaryFrame.TFrame")
         self.representation.pack(fill=tk.BOTH, padx=2, pady=2)
         self.title_label = ttk.Label(self.representation,
                                      text=title,
-                                     style="WhitePrimaryLabel.TLabel",
+                                     style="LightBluePrimaryLabel.TLabel",
                                      )
         self.title_label.pack(anchor="nw", side=tk.TOP, padx=5, pady=5)
         self.wrapper = tk.Frame(self.representation)
