@@ -135,7 +135,7 @@ def get_selected(somelistbox):
 
 def initialize():
     global root, main_canvas, property_entries, property_frame, designer_title
-    global code_title, code_editor, widget_counts
+    global code_title, code_editor, widget_counts, current_filename
 
     root = tk.Tk()
     root.configure(background=colors.background)
@@ -254,6 +254,7 @@ def initialize():
         property_entries[p[0]] = create_property_option(property_frame, p)
 
     filemenu = tk.Menu(root, tearoff=0)
+    filemenu.add_command(label="New", command=new_file)
     filemenu.add_command(label="Load", command=load_prompt)
     filemenu.add_command(label="Save", command=save)
     filemenu.add_command(label="Save As", command=save_as)
@@ -266,7 +267,9 @@ def initialize():
     menubar.add_cascade(label="Edit", menu=editmenu)
     root.config(menu=menubar)
 
-    load("test_gui.py")
+    load("blank_file.py")
+    current_filename = None
+    root.wm_title("PyPyGUIMaker: New File")
 
     root.bind("<Delete>", lambda event: on_delete_press())
 
@@ -275,15 +278,18 @@ def initialize():
 
 def new_file():
     """Creates a new empty gui in this window"""
+    global current_filename
     response = tk.messagebox.askquestion("New File", "Do you want to save changes to this file?")
     if response == "yes":
         save()
-    clear_all_widgets()
+    load("blank_file.py")
+    current_filename = None
+    root.wm_title("PyPyGUIMaker: New File")
 
 
 def clear_all_widgets():
     """Removes all widgets from the designer"""
-    global gui_objects, selected_objectes, current_filename
+    global gui_objects, selected_objects, current_filename
     class placeholder():
         def __init__(self, object_name):
             self.object_name = object_name
@@ -291,7 +297,6 @@ def clear_all_widgets():
     main_canvas.delete("all")
     gui_objects = []
     selected_objects = ()
-    current_filename = None
     load_root(obj, [], [])
 
 
