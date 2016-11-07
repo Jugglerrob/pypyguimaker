@@ -80,6 +80,16 @@ class Window(Container, Sized):
         self.title = title
         self.size = size
 
+    @property
+    def name(self):
+        return "root"
+        
+    @name.setter
+    def name(self, value):
+        pass # don't set name.
+        # Todo: Make this error so we can see where name setting logic is wrong
+
+
 
 class Widget(GUIObj):
     """Represents all tk widgets. Must be a child of a container."""

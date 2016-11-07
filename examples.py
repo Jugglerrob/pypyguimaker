@@ -1,11 +1,11 @@
 from tkinter import *
 from tkinter.ttk import *
 def initialize():
-    global Text1, Label1, Button1, Checkbutton1, Entry1, Entry2, Entry3, Text1, Canvas1
+    global root, Label1, Button1, Checkbutton1, Entry1, Entry2, Entry3, Text1, Canvas1
     
     root = Tk()
-    Text1.title("Python application")
-    Text1.geometry("325x500")
+    root.title("")
+    root.geometry("325x500")
     
     Label1 = Label(root)
     Label1["text"] = "Example Widgets"
@@ -33,7 +33,6 @@ def initialize():
     Entry3 = Entry(root)
     Entry3.insert(0, "password")
     Entry3["justify"] = "left"
-    Entry3["show"] = "*"
     Entry3.place(x=205, y=100, width=90, height=20)
     
     Text1 = Text(root)
@@ -42,7 +41,7 @@ def initialize():
     Canvas1 = Canvas(root, bg="red")
     Canvas1.place(x=13, y=307, width=293, height=164)
     
-    Text1.mainloop()
+    root.mainloop()
 initialize()
 
 
