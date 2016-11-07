@@ -337,7 +337,7 @@ class TkMovableWidgetImpl(MovableWidget, TkWidgetImpl):
                 event(new_event)
 
 
-class TkSizableWidgetImpl(SizableWidget, TkWidgetImpl):
+class TkSizableWidgetImpl(SizableWidget, TkWidgetImpl, Sized):
     """
     This is the implementation for a sizable widget. This should be almost
     universal to all tk widgets.

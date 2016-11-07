@@ -23,7 +23,7 @@ def initialize():
     Entry1 = Entry(root)
     Entry1.insert(0, "Place Holder Text")
     Entry1["justify"] = "left"
-    Entry1.place(x=200, y=75, width=103, height=25)
+    Entry1.place(x=200, y=75, width=100, height=20)
     
     Entry2 = Entry(root)
     Entry2.insert(0, "")
@@ -33,13 +33,13 @@ def initialize():
     Entry3 = Entry(root)
     Entry3.insert(0, "password")
     Entry3["justify"] = "left"
-    Entry3.place(x=205, y=100, width=90, height=20)
+    Entry3.place(x=200, y=100, width=100, height=20)
     
     Text1 = Text(root)
-    Text1.place(x=11, y=136, width=297, height=158)
+    Text1.place(x=15, y=125, width=300, height=158)
     
     Canvas1 = Canvas(root, bg="red")
-    Canvas1.place(x=13, y=307, width=293, height=164)
+    Canvas1.place(x=15, y=300, width=300, height=175)
     
     root.mainloop()
 initialize()
