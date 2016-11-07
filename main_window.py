@@ -254,12 +254,16 @@ def initialize():
         property_entries[p[0]] = create_property_option(property_frame, p)
 
     filemenu = tk.Menu(root, tearoff=0)
-    filemenu.add_command(label="Load...", command=load_prompt)
+    filemenu.add_command(label="Load", command=load_prompt)
     filemenu.add_command(label="Save", command=save)
     filemenu.add_command(label="Save As", command=save_as)
 
+    editmenu = tk.Menu(root, tearoff=0)
+    editmenu.add_command(label="Clear Widgets", command=clear_all_widgets)
+
     menubar = tk.Menu(root)
     menubar.add_cascade(label="File", menu=filemenu)
+    menubar.add_cascade(label="Edit", menu=editmenu)
     root.config(menu=menubar)
 
     load("test_gui.py")
@@ -267,6 +271,28 @@ def initialize():
     root.bind("<Delete>", lambda event: on_delete_press())
 
     root.mainloop()
+
+
+def new_file():
+    """Creates a new empty gui in this window"""
+    response = tk.messagebox.askquestion("New File", "Do you want to save changes to this file?")
+    if response == "yes":
+        save()
+    clear_all_widgets()
+
+
+def clear_all_widgets():
+    """Removes all widgets from the designer"""
+    global gui_objects, selected_objectes, current_filename
+    class placeholder():
+        def __init__(self, object_name):
+            self.object_name = object_name
+    obj = placeholder("root")
+    main_canvas.delete("all")
+    gui_objects = []
+    selected_objects = ()
+    current_filename = None
+    load_root(obj, [], [])
 
 
 def on_delete_press():
