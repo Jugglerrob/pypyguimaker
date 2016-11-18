@@ -1064,10 +1064,8 @@ def save_command(cmd):
     Basically adds lambda if we need to
     """
     if re.match(r".*\(.*\).*", cmd):
-        print("lambda")
         return "lambda: " + cmd
     else:
-        print("not lambda")
         return cmd
 
 
