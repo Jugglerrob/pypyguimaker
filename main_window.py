@@ -1414,11 +1414,9 @@ def gui_to_src():
     for obj in gui_objects:
         _globals += obj.name + ", "
     _globals = _globals[0:-2] + "\n"
-    # add user code
-    src = (code_editor["text"] + "def initialize():" + _globals + src +
-           "initialize()\n")
-    # add helper methods
-    src += "\n" + helper_code + "\n"
+    # add user code and helper methods
+    src = (code_editor["text"] + helper_code + "\n" + "def initialize():" +
+		   _globals + src + "initialize()\n")
     return src
 
 

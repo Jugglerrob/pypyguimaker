@@ -1,49 +1,5 @@
 from tkinter import *
 from tkinter.ttk import *
-def initialize():
-    global root, Label1, Button1, Checkbutton1, Entry1, Entry2, Entry3, Text1, Canvas1
-    
-    root = Tk()
-    root.title("")
-    root.geometry("325x500")
-    
-    Label1 = Label(root)
-    Label1["text"] = "Example Widgets"
-    Label1.place(x=103, y=5, width=97, height=35)
-    
-    Button1 = Button(root)
-    Button1["text"] = "Click Me!"
-    Button1.place(x=8, y=50, width=79, height=38)
-    
-    Checkbutton1 = Checkbutton(root)
-    Checkbutton1["text"] = "Check Me"
-    Checkbutton1["takefocus"] = True
-    Checkbutton1.place(x=111, y=50, width=82, height=20)
-    
-    Entry1 = Entry(root)
-    Entry1.insert(0, "Place Holder Text")
-    Entry1["justify"] = "left"
-    Entry1.place(x=200, y=75, width=100, height=20)
-    
-    Entry2 = Entry(root)
-    Entry2.insert(0, "")
-    Entry2["justify"] = "left"
-    Entry2.place(x=200, y=50, width=100, height=21)
-    
-    Entry3 = Entry(root)
-    Entry3.insert(0, "password")
-    Entry3["justify"] = "left"
-    Entry3.place(x=200, y=100, width=100, height=20)
-    
-    Text1 = Text(root)
-    Text1.place(x=15, y=125, width=300, height=158)
-    
-    Canvas1 = Canvas(root, bg="red")
-    Canvas1.place(x=15, y=300, width=300, height=175)
-    
-    root.mainloop()
-initialize()
-
 
 def set_text(widget, newtext):
     if type(widget).__name__ == 'ScrolledList':
@@ -147,3 +103,46 @@ def get_selected(somelistbox):
     else:
         return somelistbox.getselected()
 
+def initialize():
+    global root, Label1, Button1, Checkbutton1, Entry1, Entry2, Entry3, Text1, Canvas1
+    
+    root = Tk()
+    root.title("")
+    root.geometry("325x500")
+    
+    Label1 = Label(root)
+    Label1["text"] = "Example Widgets"
+    Label1.place(x=103, y=5, width=97, height=35)
+    
+    Button1 = Button(root)
+    Button1["text"] = "Click Me!"
+    Button1.place(x=8, y=50, width=79, height=38)
+    
+    Checkbutton1 = Checkbutton(root)
+    Checkbutton1["text"] = "Check Me"
+    Checkbutton1["takefocus"] = True
+    Checkbutton1.place(x=111, y=50, width=82, height=20)
+    
+    Entry1 = Entry(root)
+    Entry1.insert(0, "Place Holder Text")
+    Entry1["justify"] = "left"
+    Entry1.place(x=200, y=75, width=100, height=20)
+    
+    Entry2 = Entry(root)
+    Entry2.insert(0, "")
+    Entry2["justify"] = "left"
+    Entry2.place(x=200, y=50, width=100, height=21)
+    
+    Entry3 = Entry(root)
+    Entry3.insert(0, "password")
+    Entry3["justify"] = "left"
+    Entry3.place(x=200, y=100, width=100, height=20)
+    
+    Text1 = Text(root)
+    Text1.place(x=15, y=125, width=300, height=158)
+    
+    Canvas1 = Canvas(root, bg="red")
+    Canvas1.place(x=15, y=300, width=300, height=175)
+    
+    root.mainloop()
+initialize()
