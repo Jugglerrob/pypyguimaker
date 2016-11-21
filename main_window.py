@@ -150,11 +150,16 @@ def initialize():
     for p in properties:
         property_entries[p[0]] = create_property_option(property_frame, p)
 
+    examplemenu = tk.Menu(root, tearoff=0)
+    examplemenu.add_command(label="All Widgets",
+                            command=lambda: load_example("examples.py"))
+
     filemenu = tk.Menu(root, tearoff=0)
     filemenu.add_command(label="New", command=new_file)
     filemenu.add_command(label="Load", command=load_prompt)
     filemenu.add_command(label="Save", command=save)
     filemenu.add_command(label="Save As", command=save_as)
+    filemenu.add_cascade(label="Examples", menu=examplemenu)
 
     editmenu = tk.Menu(root, tearoff=0)
     editmenu.add_command(label="Clear Widgets", command=clear_all_widgets)
@@ -1250,6 +1255,12 @@ def load_canvas(obj, assignments, method_calls):
     new_canvas.bind_event("selected", on_selection)
     new_canvas.bind_event("moved", on_move)
     gui_objects.append(new_canvas)
+
+
+def load_example(filename):
+    """Asks the user to save and then loads a given example program"""
+    save()
+    load(filename)
 
 
 def save():
