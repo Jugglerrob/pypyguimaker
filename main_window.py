@@ -1,12 +1,14 @@
 import GUIObj
 import guiparser
 import tkinter as tk
+import tkinter.messagebox
 import tkinter.ttk as ttk
 import tkinter.filedialog
 import colors
 import code_editor as editor
 import styles
 import re
+import inspect
 
 gui_objects = []  # all gui objs in the designer
 selected_objects = ()  # The currently selected gui obj
