@@ -1,12 +1,14 @@
 import GUIObj
 import guiparser
 import tkinter as tk
+import tkinter.messagebox
 import tkinter.ttk as ttk
 import tkinter.filedialog
 import colors
 import code_editor as editor
 import styles
 import re
+import inspect
 
 gui_objects = []  # all gui objs in the designer
 selected_objects = ()  # The currently selected gui obj
@@ -28,110 +30,7 @@ ignore_methods = ["def initialize():",
                   "def ask_for_string(prompt):",
                   "def ask_for_yes_no(prompt):",
                   "def get_selected(somelistbox):"]
-helper_code = """
-def set_text(widget, newtext):
-    if type(widget).__name__ == 'ScrolledList':
-        # have to do this because ScrolledList may not have been included
-        widget.listbox.delete(0,END)
-    if type(newtext) == list:
-        for string in newtext:
-            widget.listbox.insert(END,string)
-    elif type(newtext) == str:
-        for string in newtext.split('\\n'):
-            widget.listbox.insert(END,string)
-
-    elif type(widget).__name__ == 'ScrolledText':
-        # have to do this because ScrolledText may not have been included
-        widget.text.delete('1.0', END)
-        widget.text.insert('1.0', newtext)
-        widget.text.mark_set(INSERT, '1.0')
-
-    elif type(widget) == Text:
-        widget.delete('1.0', END)
-        widget.insert('1.0', newtext)
-
-    elif type(widget) == Entry:
-        widget.delete(0,END)
-        widget.insert(0,newtext)
-
-    elif type(widget) == Label:
-        widget['text'] = newtext
-
-    elif type(widget) == Button:
-        widget.config(text=newtext)
-
-    elif type(widget) == Checkbutton:
-        widget.config(text=newtext)
-
-    elif type(widget) == Scale:
-        widget['label'] = newtext
-
-    elif type(widget) == Listbox:
-        widget.delete(0,END)
-        if type(newtext) == list:
-            for string in newtext:
-                widget.insert(END,string)
-        elif type(newtext) == str:
-            for string in newtext.split('\\n'):
-                widget.insert(END,string)
-
-        elif type(widget) == Menubutton:
-            widget['text'] = newtext
-
-def get_text(widget):
-    if type(widget).__name__ == 'ScrolledList':
-        return list(widget.listbox.get(0,END))
-
-    elif type(widget).__name__ == 'ScrolledText':
-        return widget.text.get('1.0', END+'-1c')
-
-    elif type(widget) == Text:
-        return widget.get('1.0', END+'-1c')
-
-    elif type(widget) == Entry:
-        return widget.get()
-
-    elif type(widget) == Label:
-        return widget.cget('text')
-
-    elif type(widget) == Button:
-        return widget['text']
-
-    elif type(widget) == Checkbutton:
-        return widget.cget('text')
-
-    elif type(widget) == Scale:
-        return widget['label']
-
-    elif type(widget) == Listbox:
-        return list(widget.get(0,END))
-
-    elif type(widget) == Menubutton:
-        return widget['text']
-
-def append_text(widget, newtext):
-    current_text = get_text(widget)
-    set_text(widget, current_text + newtext)
-
-def popup(msg):
-    box.showinfo('msg', msg)
-
-def ask_for_string(prompt):
-    return simpledialog.askstring('request for input', prompt)
-
-def ask_for_yes_no(prompt):
-    return box.askquestion('request for yes/no', prompt)
-
-def get_selected(somelistbox):
-    if type(somelistbox) == Listbox:
-        try:
-            return somelistbox.get(somelistbox.curselection()[0])
-        except:
-            return ''
-    else:
-        return somelistbox.getselected()
-"""
-
+helper_code = open("helpermethods.py", mode="r").read()
 
 def initialize():
     global root, main_canvas, property_entries, property_frame, designer_title
@@ -253,11 +152,16 @@ def initialize():
     for p in properties:
         property_entries[p[0]] = create_property_option(property_frame, p)
 
+    examplemenu = tk.Menu(root, tearoff=0)
+    examplemenu.add_command(label="All Widgets",
+                            command=lambda: load_example("examples.py"))
+
     filemenu = tk.Menu(root, tearoff=0)
     filemenu.add_command(label="New", command=new_file)
     filemenu.add_command(label="Load", command=load_prompt)
     filemenu.add_command(label="Save", command=save)
     filemenu.add_command(label="Save As", command=save_as)
+    filemenu.add_cascade(label="Examples", menu=examplemenu)
 
     editmenu = tk.Menu(root, tearoff=0)
     editmenu.add_command(label="Clear Widgets", command=clear_all_widgets)
@@ -1351,6 +1255,12 @@ def load_canvas(obj, assignments, method_calls):
     new_canvas.bind_event("selected", on_selection)
     new_canvas.bind_event("moved", on_move)
     gui_objects.append(new_canvas)
+
+
+def load_example(filename):
+    """Asks the user to save and then loads a given example program"""
+    save()
+    load(filename)
 
 
 def save():
